@@ -1,3 +1,4 @@
+import PageHeader from "@/components/ui/PageHeader";
 import { FileText, FileImage, FileArchive } from "lucide-react";
 
 const documents = [

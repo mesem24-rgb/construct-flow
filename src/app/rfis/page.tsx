@@ -1,3 +1,5 @@
+import PageHeader from "@/components/ui/PageHeader";
+
 const rfis = [
   {
     id: "RFI-001",

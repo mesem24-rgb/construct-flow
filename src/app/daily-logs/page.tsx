@@ -1,3 +1,5 @@
+import PageHeader from "@/components/ui/PageHeader";
+
 const dailyLogs = [
   {
     date: "May 22, 2026",
