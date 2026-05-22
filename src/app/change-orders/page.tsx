@@ -1,4 +1,5 @@
 import PageHeader from "@/components/ui/PageHeader";
+import StatusBadge from "@/components/ui/StatusBadge";
 
 const changeOrders = [
   {
@@ -66,7 +67,7 @@ export default function ChangeOrdersPage() {
 
                 <div>
                   <p className="text-slate-400">Status</p>
-                  <p className="font-medium">{order.status}</p>
+                  <StatusBadge status={order.status} />
                 </div>
 
                 <div>
