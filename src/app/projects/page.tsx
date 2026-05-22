@@ -1,42 +1,18 @@
-const projects = [
-  {
-    name: "Gulf Coast Retail Center",
-    status: "In Progress",
-    budget: "$1.2M",
-    completion: "68%",
-  },
-  {
-    name: "Bayview Medical Office",
-    status: "Planning",
-    budget: "$840K",
-    completion: "12%",
-  },
-  {
-    name: "Ocean Springs Warehouse",
-    status: "On Hold",
-    budget: "$2.4M",
-    completion: "34%",
-  },
-];
+import Link from "next/link";
+
+import PageHeader from "@/components/ui/PageHeader";
+import StatusBadge from "@/components/ui/StatusBadge";
+
+import { projects } from "@/data/projects";
 
 export default function ProjectsPage() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Projects
-          </h1>
-
-          <p className="text-slate-500">
-            Manage all active construction projects.
-          </p>
-        </div>
-
-        <button className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700">
-          New Project
-        </button>
-      </div>
+      <PageHeader
+        title="Projects"
+        description="Manage all active construction projects."
+        actionLabel="New Project"
+      />
 
       <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
         <table className="w-full">
@@ -63,15 +39,20 @@ export default function ProjectsPage() {
           <tbody>
             {projects.map((project) => (
               <tr
-                key={project.name}
+                key={project.id}
                 className="border-b transition hover:bg-slate-50"
               >
                 <td className="px-6 py-5 font-medium">
-                  {project.name}
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="transition hover:text-slate-500"
+                  >
+                    {project.name}
+                  </Link>
                 </td>
 
                 <td className="px-6 py-5">
-                  {project.status}
+                  <StatusBadge status={project.status} />
                 </td>
 
                 <td className="px-6 py-5">
@@ -79,7 +60,18 @@ export default function ProjectsPage() {
                 </td>
 
                 <td className="px-6 py-5">
-                  {project.completion}
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-32 rounded-full bg-slate-100">
+                      <div
+                        className="h-2 rounded-full bg-slate-900"
+                        style={{ width: project.completion }}
+                      />
+                    </div>
+
+                    <span className="text-sm text-slate-500">
+                      {project.completion}
+                    </span>
+                  </div>
                 </td>
               </tr>
             ))}
