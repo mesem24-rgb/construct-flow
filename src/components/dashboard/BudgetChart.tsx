@@ -19,7 +19,7 @@ const data = [
 
 export default function BudgetChart() {
   return (
-    <div className="h-[320px] rounded-2xl border bg-white p-6 shadow-sm">
+    <div className="h-[320px] rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-6">
         <h2 className="text-xl font-semibold">Budget Overview</h2>
         <p className="text-sm text-slate-500">

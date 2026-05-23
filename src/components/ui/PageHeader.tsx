@@ -13,7 +13,7 @@ export default function PageHeader({
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-        <p className="text-slate-500">{description}</p>
+        <p className="text-slate-500 dark:text-slate-400">{description}</p>
       </div>
 
       {actionLabel && (

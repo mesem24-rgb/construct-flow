@@ -34,7 +34,7 @@ const activities = [
 
 export default function ActivityFeed() {
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-6">
         <h2 className="text-xl font-semibold">
           Recent Activity
@@ -52,9 +52,9 @@ export default function ActivityFeed() {
           return (
             <div
               key={activity.title}
-              className="flex items-start gap-4 rounded-xl border p-4"
+              className="flex items-start gap-4 rounded-xl border border-slate-200 p-4 dark:border-slate-800"
             >
-              <div className="rounded-xl bg-slate-100 p-3">
+              <div className="rounded-xl bg-slate-100 p-3 dark:bg-slate-800">
                 <Icon size={18} />
               </div>
 

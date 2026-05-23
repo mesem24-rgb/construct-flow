@@ -14,9 +14,9 @@ export default function ProjectsPage() {
         actionLabel="New Project"
       />
 
-      <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <table className="w-full">
-          <thead className="border-b bg-slate-50">
+          <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
             <tr>
               <th className="px-6 py-4 text-left text-sm font-medium text-slate-500">
                 Project
@@ -40,7 +40,7 @@ export default function ProjectsPage() {
             {projects.map((project) => (
               <tr
                 key={project.id}
-                className="border-b transition hover:bg-slate-50"
+                className="border-b border-slate-200 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
               >
                 <td className="px-6 py-5 font-medium">
                   <Link

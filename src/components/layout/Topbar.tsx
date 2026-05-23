@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Menu, Bell, Search } from "lucide-react";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 import {
   Sheet,
@@ -35,7 +36,7 @@ export default function Topbar() {
   const title = getPageTitle(pathname);
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-white px-6">
+    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 px-6">
       <div className="flex items-center gap-4">
         <div className="lg:hidden">
           <Sheet>
@@ -62,7 +63,7 @@ export default function Topbar() {
             className="bg-transparent text-sm outline-none"
           />
         </div>
-
+<ThemeToggle />
         <button className="relative rounded-xl border p-2 transition hover:bg-slate-100">
           <Bell size={20} />
           <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />

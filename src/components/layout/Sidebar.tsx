@@ -1,5 +1,7 @@
 "use client";
 
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useSidebar } from "./SidebarContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -37,18 +39,30 @@ export default function Sidebar({
   mobile?: boolean;
 }){
   const pathname = usePathname();
+  const { collapsed, toggleSidebar } = useSidebar();
 
   return (
     <aside
-  className={`bg-white ${
-    mobile
-      ? "h-full w-full"
-      : "hidden w-64 border-r lg:block"
-  }`}
+  className={`bg-white transition-all duration-300 dark:bg-slate-900 ${
+  mobile
+    ? "h-full w-full"
+    : collapsed
+    ? "hidden w-20 border-r border-slate-800 lg:block"
+    : "hidden w-64 border-r border-slate-800 lg:block"
+}`}
 >
-      <div className="border-b p-6">
-        <h1 className="text-2xl font-bold tracking-tight">ConstructFlow</h1>
-        <p className="text-sm text-slate-500">Construction Management</p>
+      <div className="relative border-b p-6">
+        {!collapsed && (
+  <>
+    <h1 className="text-2xl font-bold tracking-tight">
+      ConstructFlow
+    </h1>
+
+    <p className="text-sm text-slate-500">
+      Construction Management
+    </p>
+  </>
+)}
       </div>
 
       <nav className="space-y-2 p-4">
@@ -65,12 +79,22 @@ export default function Sidebar({
               href={link.href}
               className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition ${
                 isActive
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-700 hover:bg-slate-100"
+                  ? "bg-slate-100 text-slate-900 dark:bg-slate-100 dark:text-slate-900 shadow-sm"
+                  : "text-slate-300 hover:bg-slate-800"
               }`}
             >
+              <button
+  onClick={toggleSidebar}
+  className="absolute -right-3 top-8 rounded-full border bg-white p-1 shadow-sm dark:bg-slate-900"
+>
+  {collapsed ? (
+    <PanelLeftOpen size={16} />
+  ) : (
+    <PanelLeftClose size={16} />
+  )}
+</button>
               <Icon size={20} />
-              <span>{link.name}</span>
+              {!collapsed && <span>{link.name}</span>}
             </Link>
           );
         })}

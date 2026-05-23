@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Noto_Sans, Playfair_Display } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Noto_Sans,
+  Playfair_Display,
+} from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import AppShell from "@/components/layout/AppShell";
+import ThemeProvider from "@/components/theme/ThemeProvider";
+import { SidebarProvider } from "@/components/layout/SidebarContext";
 
 const playfairDisplayHeading = Playfair_Display({
   subsets: ["latin"],
@@ -37,6 +44,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn(
         "h-full",
         "antialiased",
@@ -44,11 +52,15 @@ export default function RootLayout({
         geistMono.variable,
         notoSans.variable,
         playfairDisplayHeading.variable,
-        "font-sans"
+        "font-sans",
       )}
     >
       <body className="min-h-full">
-        <AppShell>{children}</AppShell>
+        <ThemeProvider>
+          <SidebarProvider>
+            <AppShell>{children}</AppShell>
+          </SidebarProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

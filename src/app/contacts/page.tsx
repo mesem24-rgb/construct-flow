@@ -45,7 +45,7 @@ export default function ContactsPage() {
         {contacts.map((contact) => (
           <div
             key={contact.email}
-            className="rounded-2xl border bg-white p-6 shadow-sm"
+            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
             <div className="flex items-start gap-4">
               <div className="rounded-2xl bg-slate-100 p-3">

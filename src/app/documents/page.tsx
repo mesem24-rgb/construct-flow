@@ -45,9 +45,9 @@ export default function DocumentsPage() {
   actionLabel="Upload Document"
 />
 
-      <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <table className="w-full">
-          <thead className="border-b bg-slate-50">
+          <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
             <tr>
               <th className="px-6 py-4 text-left text-sm font-medium text-slate-500">
                 Document
@@ -72,7 +72,7 @@ export default function DocumentsPage() {
               const Icon = doc.icon;
 
               return (
-                <tr key={doc.name} className="border-b transition hover:bg-slate-50">
+                <tr key={doc.name} className="border-b border-slate-200 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800">
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3 font-medium">
                       <div className="rounded-xl bg-slate-100 p-2">

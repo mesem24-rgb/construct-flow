@@ -21,7 +21,7 @@ const projects = [
 
 export default function ActiveProjects() {
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm xl:col-span-2">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">
       <div className="mb-6">
         <h2 className="text-xl font-semibold">Active Projects</h2>
         <p className="text-sm text-slate-500">
@@ -34,7 +34,7 @@ export default function ActiveProjects() {
           <Link
             key={project.name}
             href={`/projects/${project.name.toLowerCase().replace(/\s+/g, "-")}`}
-            className="block rounded-xl border p-4 transition hover:bg-slate-50"
+            className="block rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
           >
             <div className="flex items-center justify-between">
               <div>

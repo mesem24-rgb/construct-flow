@@ -37,7 +37,7 @@ export default function DailyLogsPage() {
         {dailyLogs.map((log) => (
           <div
             key={`${log.project}-${log.date}`}
-            className="rounded-2xl border bg-white p-6 shadow-sm"
+            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
