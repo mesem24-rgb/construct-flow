@@ -2,16 +2,33 @@ import Link from "next/link";
 
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
+import { supabase } from "@/lib/supabase";
+import NewProjectDialog from "@/components/projects/NewProjectDialog";
 
-import { projects } from "@/data/projects";
+type Project = {
+  id: string;
+  name: string;
+  status: string;
+  budget: number;
+  completion: number;
+};
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const { data: projects, error } = await supabase
+    .from("projects")
+    .select("id, name, status, budget, completion")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Projects"
         description="Manage all active construction projects."
-        actionLabel="New Project"
+        action={<NewProjectDialog />}
       />
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -21,15 +38,12 @@ export default function ProjectsPage() {
               <th className="px-6 py-4 text-left text-sm font-medium text-slate-500">
                 Project
               </th>
-
               <th className="px-6 py-4 text-left text-sm font-medium text-slate-500">
                 Status
               </th>
-
               <th className="px-6 py-4 text-left text-sm font-medium text-slate-500">
                 Budget
               </th>
-
               <th className="px-6 py-4 text-left text-sm font-medium text-slate-500">
                 Completion
               </th>
@@ -37,7 +51,7 @@ export default function ProjectsPage() {
           </thead>
 
           <tbody>
-            {projects.map((project) => (
+            {(projects as Project[]).map((project) => (
               <tr
                 key={project.id}
                 className="border-b border-slate-200 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
@@ -56,20 +70,20 @@ export default function ProjectsPage() {
                 </td>
 
                 <td className="px-6 py-5">
-                  {project.budget}
+                  ${Number(project.budget).toLocaleString()}
                 </td>
 
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-3">
-                    <div className="h-2 w-32 rounded-full bg-slate-100">
+                    <div className="h-2 w-32 rounded-full bg-slate-100 dark:bg-slate-800">
                       <div
-                        className="h-2 rounded-full bg-slate-900"
-                        style={{ width: project.completion }}
+                        className="h-2 rounded-full bg-slate-900 dark:bg-slate-100"
+                        style={{ width: `${project.completion}%` }}
                       />
                     </div>
 
                     <span className="text-sm text-slate-500">
-                      {project.completion}
+                      {project.completion}%
                     </span>
                   </div>
                 </td>

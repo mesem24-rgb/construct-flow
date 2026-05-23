@@ -10,6 +10,9 @@ import { cn } from "@/lib/utils";
 import AppShell from "@/components/layout/AppShell";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import { SidebarProvider } from "@/components/layout/SidebarContext";
+import {
+  AuthProvider,
+} from "@/components/auth/AuthProvider";
 
 const playfairDisplayHeading = Playfair_Display({
   subsets: ["latin"],
@@ -58,7 +61,9 @@ export default function RootLayout({
       <body className="min-h-full">
         <ThemeProvider>
           <SidebarProvider>
-            <AppShell>{children}</AppShell>
+            <AuthProvider>
+              <AppShell>{children}</AppShell>
+            </AuthProvider>
           </SidebarProvider>
         </ThemeProvider>
       </body>

@@ -2,12 +2,14 @@ type PageHeaderProps = {
   title: string;
   description: string;
   actionLabel?: string;
+  action?: React.ReactNode;
 };
 
 export default function PageHeader({
   title,
   description,
   actionLabel,
+  action,
 }: PageHeaderProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -16,11 +18,13 @@ export default function PageHeader({
         <p className="text-slate-500 dark:text-slate-400">{description}</p>
       </div>
 
-      {actionLabel && (
-        <button className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700">
-          {actionLabel}
-        </button>
-      )}
+      {action
+        ? action
+        : actionLabel && (
+            <button className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700">
+              {actionLabel}
+            </button>
+          )}
     </div>
   );
 }
