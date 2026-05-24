@@ -16,12 +16,16 @@ export default function AppShell({
   const router = useRouter();
   const { session, loading } = useAuth();
 
+  const isDemo =
+  typeof window !== "undefined" &&
+  localStorage.getItem("constructflow-demo") === "true";
+
   const isLoginPage = pathname === "/login";
 
   useEffect(() => {
-    if (!loading && !session && !isLoginPage) {
-      router.push("/login");
-    }
+    if (!loading && !session && !isDemo && !isLoginPage) {
+  router.push("/login");
+}
 
     if (!loading && session && isLoginPage) {
       router.push("/");
@@ -42,9 +46,9 @@ export default function AppShell({
     return <>{children}</>;
   }
 
-  if (!session) {
-    return null;
-  }
+  if (!session && !isDemo) {
+  return null;
+}
 
   return (
     <div className="flex min-h-screen bg-slate-100 transition-colors dark:bg-slate-950">

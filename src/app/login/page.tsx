@@ -3,9 +3,17 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+import { useRouter } from "next/navigation";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
+  const router = useRouter();
+
+  function handleDemoLogin() {
+  localStorage.setItem("constructflow-demo", "true");
+  router.push("/");
+}
 
   async function handleLogin(event: React.FormEvent) {
     event.preventDefault();
@@ -56,6 +64,13 @@ export default function LoginPage() {
           >
             Send Login Link
           </button>
+          <button
+  type="button"
+  onClick={handleDemoLogin}
+  className="w-full rounded-xl border px-5 py-3 font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+>
+  Continue as Demo User
+</button>
         </div>
 
         {status && (
