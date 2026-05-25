@@ -8,7 +8,7 @@ import {
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import AppShell from "@/components/layout/AppShell";
-import ThemeProvider from "@/components/theme/ThemeProvider";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { SidebarProvider } from "@/components/layout/SidebarContext";
 import {
   AuthProvider,

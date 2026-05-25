@@ -1,8 +1,10 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { Menu, Bell, Search } from "lucide-react";
+import { Bell, LogOut, Menu, Search } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import { supabase } from "@/lib/supabase";
 
 import {
   Sheet,
@@ -33,16 +35,23 @@ function getPageTitle(pathname: string) {
 
 export default function Topbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const title = getPageTitle(pathname);
 
+  async function handleLogout() {
+    localStorage.removeItem("constructflow-demo");
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
+
   return (
-    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 px-6">
+    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center gap-4">
         <div className="lg:hidden">
           <Sheet>
             <SheetTrigger className="rounded-lg border p-2">
-  <Menu size={20} />
-</SheetTrigger>
+              <Menu size={20} />
+            </SheetTrigger>
 
             <SheetContent side="left" className="w-[280px] p-0">
               <Sidebar mobile />
@@ -54,7 +63,7 @@ export default function Topbar() {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="hidden items-center gap-2 rounded-xl border bg-slate-50 px-3 py-2 md:flex">
+        <div className="hidden items-center gap-2 rounded-xl border bg-slate-50 px-3 py-2 md:flex dark:border-slate-800 dark:bg-slate-950">
           <Search size={18} className="text-slate-400" />
 
           <input
@@ -63,10 +72,20 @@ export default function Topbar() {
             className="bg-transparent text-sm outline-none"
           />
         </div>
-<ThemeToggle />
-        <button className="relative rounded-xl border p-2 transition hover:bg-slate-100">
+
+        <ThemeToggle />
+
+        <button className="relative rounded-xl border p-2 transition hover:bg-slate-100 dark:hover:bg-slate-800">
           <Bell size={20} />
           <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className="rounded-xl border p-2 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+          aria-label="Log out"
+        >
+          <LogOut size={20} />
         </button>
 
         <div className="flex items-center gap-3">
@@ -75,7 +94,7 @@ export default function Topbar() {
             <p className="text-xs text-slate-500">Project Manager</p>
           </div>
 
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 font-medium">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 font-medium text-slate-900">
             MS
           </div>
         </div>
