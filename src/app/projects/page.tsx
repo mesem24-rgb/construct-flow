@@ -2,8 +2,9 @@ import Link from "next/link";
 
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
-import { supabase } from "@/lib/supabase";
 import NewProjectDialog from "@/components/projects/NewProjectDialog";
+
+import { supabase } from "@/lib/supabase";
 
 type Project = {
   id: string;

@@ -16,9 +16,17 @@ import {
 type Project = {
   id: string;
   name: string;
+  
 };
 
-export default function NewTaskDialog() {
+type NewTaskDialogProps = {
+  defaultProjectId?: string;
+};
+
+export default function NewTaskDialog({
+  defaultProjectId,
+}: NewTaskDialogProps) {
+
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
@@ -40,12 +48,12 @@ export default function NewTaskDialog() {
 
       if (data) {
         setProjects(data);
-        setProjectId(data[0]?.id ?? "");
+        setProjectId(defaultProjectId || data[0]?.id || "");
       }
     }
 
     loadProjects();
-  }, []);
+  }, [defaultProjectId]);
 
   async function handleCreateTask(event: React.FormEvent) {
   event.preventDefault();

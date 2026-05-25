@@ -2,8 +2,27 @@ import { notFound } from "next/navigation";
 
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
+import { supabase } from "@/lib/supabase";
+import NewTaskDialog from "@/components/tasks/NewTaskDialog";
 
-import { projects } from "@/data/projects";
+type Project = {
+  id: string;
+  name: string;
+  status: string;
+  budget: number;
+  completion: number;
+  open_tasks: number;
+  pending_rfis: number;
+};
+
+type Task = {
+  id: string;
+  title: string;
+  assignee: string | null;
+  priority: string;
+  status: string;
+  due_date: string | null;
+};
 
 interface ProjectPageProps {
   params: Promise<{
@@ -16,94 +35,99 @@ export default async function ProjectDetailPage({
 }: ProjectPageProps) {
   const { id } = await params;
 
-  const project = projects.find((p) => p.id === id);
+  const { data: project, error: projectError } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-  if (!project) {
+  if (projectError || !project) {
     notFound();
   }
+
+  const { data: tasks, error: tasksError } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("project_id", id)
+    .order("created_at", { ascending: false });
+
+  if (tasksError) {
+    throw new Error(tasksError.message);
+  }
+
+  const typedProject = project as Project;
+  const typedTasks = (tasks ?? []) as Task[];
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title={project.name}
+        title={typedProject.name}
         description="Commercial construction project overview."
-        actionLabel="Edit Project"
+        action={<NewTaskDialog defaultProjectId={typedProject.id} />}
       />
 
       <div className="flex items-center gap-3">
-        <StatusBadge status={project.status} />
+        <StatusBadge status={typedProject.status} />
 
-        <p className="text-sm text-slate-500">
-          Budget: {project.budget}
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Budget: ${Number(typedProject.budget).toLocaleString()}
         </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {[
-          ["Budget", project.budget],
-          ["Completion", project.completion],
-          ["Open Tasks", project.openTasks],
-          ["Pending RFIs", project.pendingRFIs],
+          ["Budget", `$${Number(typedProject.budget).toLocaleString()}`],
+          ["Completion", `${typedProject.completion}%`],
+          ["Open Tasks", typedTasks.length],
+          ["Pending RFIs", typedProject.pending_rfis],
         ].map(([title, value]) => (
           <div
             key={title}
-            className="rounded-2xl border bg-white p-6 shadow-sm"
+            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               {title}
             </p>
 
-            <h3 className="mt-2 text-3xl font-bold">
-              {value}
-            </h3>
+            <h3 className="mt-2 text-3xl font-bold">{value}</h3>
           </div>
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="rounded-2xl border bg-white p-6 shadow-sm xl:col-span-2">
-          <h2 className="mb-4 text-xl font-semibold">
-            Recent Activity
-          </h2>
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="mb-4 text-xl font-semibold">Project Tasks</h2>
 
+        {typedTasks.length === 0 ? (
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            No tasks have been added to this project yet.
+          </p>
+        ) : (
           <div className="space-y-4">
-            {[
-              "Electrical rough-in completed",
-              "Inspection scheduled for Friday",
-              "Updated structural drawings uploaded",
-              "Concrete delivery confirmed",
-            ].map((activity) => (
+            {typedTasks.map((task) => (
               <div
-                key={activity}
-                className="rounded-xl bg-slate-50 p-4"
+                key={task.id}
+                className="rounded-xl border border-slate-200 p-4 dark:border-slate-800"
               >
-                {activity}
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h3 className="font-medium">{task.title}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {task.assignee || "Unassigned"}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    <StatusBadge status={task.priority} />
+                    <StatusBadge status={task.status} />
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      Due: {task.due_date || "No due date"}
+                    </span>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="rounded-2xl border bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold">
-            Project Team
-          </h2>
-
-          <div className="space-y-4">
-            {[
-              "Michael Sullivan — Project Manager",
-              "James Carter — Superintendent",
-              "Emily Brooks — Architect",
-              "Tyler Davis — Electrical Contractor",
-            ].map((member) => (
-              <div
-                key={member}
-                className="rounded-xl border p-4"
-              >
-                {member}
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
