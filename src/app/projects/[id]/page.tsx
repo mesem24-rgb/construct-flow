@@ -9,6 +9,7 @@ import NewTaskDialog from "@/components/tasks/NewTaskDialog";
 import EditProjectDialog from "@/components/projects/EditProjectDialog";
 import UploadDocumentDialog from "@/components/documents/UploadDocumentDialog";
 import DeleteDocumentButton from "@/components/documents/DeleteDocumentButton";
+import DocumentList from "@/components/documents/DocumentList";
 
 export const dynamic = "force-dynamic";
 
@@ -188,27 +189,13 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           </p>
         ) : (
           <div className="space-y-3">
-            {typedDocuments.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center justify-between rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
-              >
-                <a
-                  href={doc.file_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block"
-                >
-                  <p className="font-medium">{doc.name}</p>
-
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}
-                  </p>
-                </a>
-
-                <DeleteDocumentButton id={doc.id} fileUrl={doc.file_url} />
-              </div>
-            ))}
+            {typedDocuments.length === 0 ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                No documents have been uploaded yet.
+              </p>
+            ) : (
+              <DocumentList documents={typedDocuments} />
+            )}
           </div>
         )}
       </div>
