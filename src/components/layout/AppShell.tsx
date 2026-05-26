@@ -1,23 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
+function getIsDemo() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return localStorage.getItem("constructflow-demo") === "true";
+}
+
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { session, loading } = useAuth();
-  const [isDemo, setIsDemo] = useState(false);
 
   const isLoginPage = pathname === "/login";
-
-  useEffect(() => {
-    setIsDemo(localStorage.getItem("constructflow-demo") === "true");
-  }, []);
+  const isDemo = getIsDemo();
 
   useEffect(() => {
     if (!loading && !session && !isDemo && !isLoginPage) {
