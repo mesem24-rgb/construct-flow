@@ -44,9 +44,7 @@ interface ProjectPageProps {
   }>;
 }
 
-export default async function ProjectDetailPage({
-  params,
-}: ProjectPageProps) {
+export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { id } = await params;
 
   const { data: project, error: projectError } = await supabase
@@ -115,13 +113,10 @@ export default async function ProjectDetailPage({
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {[
-          [
-            "Budget",
-            `$${Number(typedProject.budget).toLocaleString()}`,
-          ],
+          ["Budget", `$${Number(typedProject.budget).toLocaleString()}`],
           ["Completion", `${typedProject.completion}%`],
           ["Open Tasks", typedTasks.length],
-          ["Pending RFIs", typedProject.pending_rfis],
+          ["Documents", typedDocuments.length],
         ].map(([title, value]) => (
           <div
             key={title}
@@ -177,9 +172,7 @@ export default async function ProjectDetailPage({
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold">
-              Project Documents
-            </h2>
+            <h2 className="text-xl font-semibold">Project Documents</h2>
 
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Upload plans, permits, contracts, photos, and project files.
@@ -209,17 +202,11 @@ export default async function ProjectDetailPage({
                   <p className="font-medium">{doc.name}</p>
 
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Uploaded{" "}
-                    {new Date(
-                      doc.uploaded_at,
-                    ).toLocaleDateString()}
+                    Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}
                   </p>
                 </a>
 
-                <DeleteDocumentButton
-                  id={doc.id}
-                  fileUrl={doc.file_url}
-                />
+                <DeleteDocumentButton id={doc.id} fileUrl={doc.file_url} />
               </div>
             ))}
           </div>

@@ -4,6 +4,7 @@ import TaskStatusChart from "@/components/dashboard/TaskStatusChart";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import ActiveProjects from "@/components/dashboard/ActiveProjects";
 import UpcomingSchedule from "@/components/dashboard/UpcomingSchedule";
+import DashboardRealtime from "@/components/dashboard/DashboardRealtime";
 
 import { supabase } from "@/lib/supabase";
 
@@ -67,6 +68,7 @@ const budgetChartData =
 
   return (
     <div className="space-y-6">
+      <DashboardRealtime />
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
 
