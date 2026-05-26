@@ -5,6 +5,8 @@ import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import ActiveProjects from "@/components/dashboard/ActiveProjects";
 import UpcomingSchedule from "@/components/dashboard/UpcomingSchedule";
 
+import { supabase } from "@/lib/supabase";
+
 import {
   FolderKanban,
   ClipboardList,
@@ -12,7 +14,55 @@ import {
   DollarSign,
 } from "lucide-react";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { count: projectCount } = await supabase
+    .from("projects")
+    .select("*", { count: "exact", head: true });
+
+  const { count: openTaskCount } = await supabase
+    .from("tasks")
+    .select("*", { count: "exact", head: true })
+    .neq("status", "Closed");
+
+  const { data: projects } = await supabase
+  .from("projects")
+  .select("name, budget, completion");
+
+  const totalBudget =
+    projects?.reduce((total, project) => {
+      return total + Number(project.budget ?? 0);
+    }, 0) ?? 0;
+
+    const { data: tasks } = await supabase
+  .from("tasks")
+  .select("status");
+
+const taskStatusData = [
+  {
+    name: "Open",
+    value: tasks?.filter((task) => task.status === "Open").length ?? 0,
+  },
+  {
+    name: "In Progress",
+    value:
+      tasks?.filter((task) => task.status === "In Progress").length ?? 0,
+  },
+  {
+    name: "Review",
+    value: tasks?.filter((task) => task.status === "Review").length ?? 0,
+  },
+  {
+    name: "Closed",
+    value: tasks?.filter((task) => task.status === "Closed").length ?? 0,
+  },
+];
+
+const budgetChartData =
+  projects?.map((project) => ({
+    project: project.name,
+    budget: Number(project.budget ?? 0),
+  })) ?? [];
+
   return (
     <div className="space-y-6">
       <div>
@@ -24,15 +74,34 @@ export default function HomePage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Active Projects" value="12" icon={FolderKanban} />
-        <StatCard title="Open Tasks" value="48" icon={ClipboardList} />
-        <StatCard title="Pending RFIs" value="7" icon={FileWarning} />
-        <StatCard title="Budget Remaining" value="$248K" icon={DollarSign} />
+        <StatCard
+          title="Active Projects"
+          value={String(projectCount ?? 0)}
+          icon={FolderKanban}
+        />
+
+        <StatCard
+          title="Open Tasks"
+          value={String(openTaskCount ?? 0)}
+          icon={ClipboardList}
+        />
+
+        <StatCard
+          title="Pending RFIs"
+          value="7"
+          icon={FileWarning}
+        />
+
+        <StatCard
+          title="Total Budget"
+          value={`$${totalBudget.toLocaleString()}`}
+          icon={DollarSign}
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <BudgetChart />
-        <TaskStatusChart />
+       <BudgetChart data={budgetChartData} />
+        <TaskStatusChart data={taskStatusData} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">

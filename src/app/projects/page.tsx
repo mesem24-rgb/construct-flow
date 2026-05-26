@@ -24,6 +24,8 @@ export default async function ProjectsPage() {
     throw new Error(error.message);
   }
 
+  
+
   return (
     <div className="space-y-6">
       <PageHeader

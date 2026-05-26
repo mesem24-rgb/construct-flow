@@ -1,39 +1,39 @@
 import Link from "next/link";
 import StatusBadge from "@/components/ui/StatusBadge";
+import { supabase } from "@/lib/supabase";
 
-const projects = [
-  {
-    name: "Gulf Coast Retail Center",
-    status: "In Progress",
-    progress: "68%",
-  },
-  {
-    name: "Bayview Medical Office",
-    status: "Planning",
-    progress: "12%",
-  },
-  {
-    name: "Ocean Springs Warehouse",
-    status: "On Hold",
-    progress: "34%",
-  },
-];
+type Project = {
+  id: string;
+  name: string;
+  status: string;
+  completion: number;
+};
 
-export default function ActiveProjects() {
+export default async function ActiveProjects() {
+  const { data: projects, error } = await supabase
+    .from("projects")
+    .select("id, name, status, completion")
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">
       <div className="mb-6">
         <h2 className="text-xl font-semibold">Active Projects</h2>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Current commercial construction projects.
         </p>
       </div>
 
       <div className="space-y-4">
-        {projects.map((project) => (
+        {(projects as Project[]).map((project) => (
           <Link
-            key={project.name}
-            href={`/projects/${project.name.toLowerCase().replace(/\s+/g, "-")}`}
+            key={project.id}
+            href={`/projects/${project.id}`}
             className="block rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
           >
             <div className="flex items-center justify-between">
@@ -45,8 +45,10 @@ export default function ActiveProjects() {
               </div>
 
               <div className="text-right">
-                <p className="text-sm text-slate-500">Progress</p>
-                <p className="font-semibold">{project.progress}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Progress
+                </p>
+                <p className="font-semibold">{project.completion}%</p>
               </div>
             </div>
           </Link>
