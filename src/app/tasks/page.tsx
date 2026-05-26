@@ -2,7 +2,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import NewTaskDialog from "@/components/tasks/NewTaskDialog";
 import DeleteTaskButton from "@/components/tasks/DeleteTaskButton";
-
+import EditTaskDialog from "@/components/tasks/EditTaskDialog";
 import { supabase } from "@/lib/supabase";
 
 type Task = {
@@ -65,7 +65,10 @@ export default async function TasksPage() {
                 </div>
 
                 <div className="flex items-end justify-start">
-                  <DeleteTaskButton id={task.id} />
+                  <div className="flex items-end justify-start gap-2">
+  <EditTaskDialog task={task} />
+  <DeleteTaskButton id={task.id} />
+</div>
                 </div>
               </div>
             </div>

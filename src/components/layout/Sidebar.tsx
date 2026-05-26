@@ -26,6 +26,11 @@ const links: SidebarLink[] = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Tasks", href: "/tasks", icon: ClipboardList },
+  {
+  name: "Task Board",
+  href: "/tasks/board",
+  icon: ClipboardList,
+},
   { name: "Daily Logs", href: "/daily-logs", icon: CalendarDays },
   { name: "Documents", href: "/documents", icon: FileText },
   { name: "RFIs", href: "/rfis", icon: MessageSquareWarning },

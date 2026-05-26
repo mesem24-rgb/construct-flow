@@ -14,6 +14,8 @@ import {
   DollarSign,
 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const { count: projectCount } = await supabase
     .from("projects")

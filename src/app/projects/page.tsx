@@ -6,6 +6,8 @@ import NewProjectDialog from "@/components/projects/NewProjectDialog";
 
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 type Project = {
   id: string;
   name: string;
@@ -29,10 +31,10 @@ export default async function ProjectsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Projects"
-        description="Manage all active construction projects."
-        action={<NewProjectDialog />}
-      />
+  title="Projects"
+  description="Manage all active construction projects."
+  action={<NewProjectDialog />}
+/>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <table className="w-full">
