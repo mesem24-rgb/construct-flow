@@ -12,7 +12,7 @@ export default function LoginPage() {
 
   function handleDemoLogin() {
   localStorage.setItem("constructflow-demo", "true");
-  router.push("/");
+  window.location.href = "/";
 }
 
   async function handleLogin(event: React.FormEvent) {
