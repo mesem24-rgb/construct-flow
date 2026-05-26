@@ -1,36 +1,37 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
-export default function AppShell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { session, loading } = useAuth();
-
-  const isDemo =
-  typeof window !== "undefined" &&
-  localStorage.getItem("constructflow-demo") === "true";
+  const [isDemo, setIsDemo] = useState(false);
 
   const isLoginPage = pathname === "/login";
 
   useEffect(() => {
+    setIsDemo(localStorage.getItem("constructflow-demo") === "true");
+  }, []);
+
+  useEffect(() => {
     if (!loading && !session && !isDemo && !isLoginPage) {
-  router.push("/login");
-}
+      router.push("/login");
+    }
 
     if (!loading && session && isLoginPage) {
       router.push("/");
     }
-  }, [loading, session, isLoginPage, router]);
+  }, [loading, session, isDemo, isLoginPage, router]);
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
@@ -42,13 +43,9 @@ export default function AppShell({
     );
   }
 
-  if (isLoginPage) {
-    return <>{children}</>;
-  }
-
   if (!session && !isDemo) {
-  return null;
-}
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-100 transition-colors dark:bg-slate-950">
