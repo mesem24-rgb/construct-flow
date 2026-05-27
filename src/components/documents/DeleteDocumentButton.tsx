@@ -2,7 +2,7 @@
 
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import { logActivity } from "@/lib/activity";
 import { supabase } from "@/lib/supabase";
 
 type DeleteDocumentButtonProps = {
@@ -37,6 +37,8 @@ export default function DeleteDocumentButton({
       alert(error.message);
       return;
     }
+
+    await logActivity("Document deleted", "document");
 
     router.refresh();
     window.location.reload();

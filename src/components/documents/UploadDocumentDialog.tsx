@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { logActivity } from "@/lib/activity";
 import { supabase } from "@/lib/supabase";
 
 import {
@@ -27,52 +27,56 @@ export default function UploadDocumentDialog({
   const [loading, setLoading] = useState(false);
 
   async function handleUpload(event: React.FormEvent) {
-    event.preventDefault();
+  event.preventDefault();
 
-    if (!file) {
-      return;
-    }
+  if (!file) {
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
-    const cleanFileName = file.name
-  .toLowerCase()
-  .replace(/[^a-z0-9.]/g, "-");
+  const cleanFileName = file.name
+    .toLowerCase()
+    .replace(/[^a-z0-9.]/g, "-");
 
-const filePath = `${projectId}/${Date.now()}-${cleanFileName}`;
+  const filePath = `${projectId}/${Date.now()}-${cleanFileName}`;
 
-    const { error: uploadError } = await supabase.storage
-  .from("documents")
-  .upload(filePath, file, {
-    cacheControl: "3600",
-    upsert: false,
+  const { error: uploadError } = await supabase.storage
+    .from("documents")
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (uploadError) {
+    setLoading(false);
+    alert(uploadError.message);
+    return;
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from("documents").getPublicUrl(filePath);
+
+  const { error: dbError } = await supabase.from("documents").insert({
+    project_id: projectId,
+    name: file.name,
+    file_url: publicUrl,
   });
 
-    const {
-      data: { publicUrl },
-    } = supabase.storage
-      .from("documents")
-      .getPublicUrl(filePath);
-
-    const { error: dbError } = await supabase
-      .from("documents")
-      .insert({
-        project_id: projectId,
-        name: file.name,
-        file_url: publicUrl,
-      });
-
+  if (dbError) {
     setLoading(false);
-
-    if (dbError) {
-      alert(dbError.message);
-      return;
-    }
-
-    setOpen(false);
-    router.refresh();
-    window.location.reload();
+    alert(dbError.message);
+    return;
   }
+
+  await logActivity(`Document uploaded: ${file.name}`, "document");
+
+  setLoading(false);
+  setOpen(false);
+  router.refresh();
+  window.location.reload();
+}
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

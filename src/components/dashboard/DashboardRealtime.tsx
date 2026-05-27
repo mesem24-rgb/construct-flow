@@ -17,7 +17,8 @@ export default function DashboardRealtime() {
           schema: "public",
           table: "tasks",
         },
-        () => {
+        (payload) => {
+          console.log("Dashboard task realtime:", payload);
           router.refresh();
         },
       )
@@ -28,11 +29,14 @@ export default function DashboardRealtime() {
           schema: "public",
           table: "projects",
         },
-        () => {
+        (payload) => {
+          console.log("Dashboard project realtime:", payload);
           router.refresh();
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Dashboard realtime status:", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);

@@ -1,7 +1,6 @@
 import BudgetChart from "@/components/dashboard/BudgetChart";
 import StatCard from "@/components/dashboard/StatCard";
 import TaskStatusChart from "@/components/dashboard/TaskStatusChart";
-import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import ActiveProjects from "@/components/dashboard/ActiveProjects";
 import UpcomingSchedule from "@/components/dashboard/UpcomingSchedule";
 import DashboardRealtime from "@/components/dashboard/DashboardRealtime";
@@ -14,6 +13,7 @@ import {
   FileWarning,
   DollarSign,
 } from "lucide-react";
+import ActivityTimeline from "@/components/dashboard/ActivityTimeline";
 
 export const dynamic = "force-dynamic";
 
@@ -110,7 +110,7 @@ const budgetChartData =
 
       <div className="grid gap-6 xl:grid-cols-3">
         <ActiveProjects />
-        <ActivityFeed />
+        <ActivityTimeline />
         <UpcomingSchedule />
       </div>
     </div>

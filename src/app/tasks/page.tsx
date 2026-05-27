@@ -1,7 +1,7 @@
 import PageHeader from "@/components/ui/PageHeader";
 import NewTaskDialog from "@/components/tasks/NewTaskDialog";
 import TaskFilters from "@/components/tasks/TaskFilters";
-
+import DashboardRealtime from "@/components/dashboard/DashboardRealtime";
 import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +27,7 @@ export default async function TasksPage() {
 
   return (
     <div className="space-y-6">
+      <DashboardRealtime />
       <PageHeader
         title="Tasks"
         description="Track project tasks, punch list items, and follow-ups."

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { logActivity } from "@/lib/activity";
 import { supabase } from "@/lib/supabase";
 
 import {
@@ -69,6 +69,8 @@ export default function EditProjectDialog({
     }
 
     alert("Project updated");
+
+    await logActivity(`Project updated: ${name}`, "project");
 
     setOpen(false);
     router.refresh();

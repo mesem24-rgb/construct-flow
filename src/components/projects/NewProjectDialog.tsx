@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
+import { logActivity } from "@/lib/activity";
 
 import {
   Dialog,
@@ -47,7 +48,10 @@ export default function NewProjectDialog() {
     setStatus("Planning");
     setOpen(false);
     router.refresh();
+    
+    await logActivity(`Project created: ${name}`, "project");
   }
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

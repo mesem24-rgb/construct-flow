@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { logActivity } from "@/lib/activity";
 import { supabase } from "@/lib/supabase";
 
 import {
@@ -70,6 +70,8 @@ export default function NewTaskDialog({
 
   setLoading(true);
 
+
+
   const { error } = await supabase.from("tasks").insert({
     title,
     project_id: projectId,
@@ -85,6 +87,9 @@ export default function NewTaskDialog({
     alert(error.message);
     return;
   }
+
+await logActivity(`Task created: ${title}`, "task");
+
 
   alert("Task created");
 

@@ -32,7 +32,7 @@ export default function TaskStatusChart({ data }: TaskStatusChartProps) {
           No task data available yet.
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height="75%">
+        <ResponsiveContainer width="100%" height={220}>
           <PieChart>
             <Pie
               data={filteredData}

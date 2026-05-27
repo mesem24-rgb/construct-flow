@@ -2,7 +2,7 @@
 
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import { logActivity } from "@/lib/activity";
 import { supabase } from "@/lib/supabase";
 
 export default function DeleteTaskButton({ id }: { id: string }) {
@@ -20,7 +20,10 @@ export default function DeleteTaskButton({ id }: { id: string }) {
       return;
     }
 
+   await logActivity("Task deleted", "task");
+
     router.refresh();
+    window.location.reload();
   }
 
   return (

@@ -10,6 +10,7 @@ import EditProjectDialog from "@/components/projects/EditProjectDialog";
 import UploadDocumentDialog from "@/components/documents/UploadDocumentDialog";
 import DeleteDocumentButton from "@/components/documents/DeleteDocumentButton";
 import DocumentList from "@/components/documents/DocumentList";
+import DeleteProjectButton from "@/components/projects/DeleteProjectButton";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +101,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 completion: typedProject.completion,
               }}
             />
+
+            <DeleteProjectButton id={typedProject.id} />  
+
           </div>
         }
       />

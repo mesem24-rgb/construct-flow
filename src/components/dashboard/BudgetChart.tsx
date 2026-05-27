@@ -27,7 +27,7 @@ export default function BudgetChart({ data }: BudgetChartProps) {
         </p>
       </div>
 
-      <ResponsiveContainer width="100%" height="75%">
+      <ResponsiveContainer width="100%" height={220}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="project" tick={{ fontSize: 12 }} />

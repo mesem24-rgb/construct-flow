@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { logActivity } from "@/lib/activity";
 import { supabase } from "@/lib/supabase";
 
 import {
@@ -35,32 +35,34 @@ export default function EditTaskDialog({ task }: EditTaskDialogProps) {
   const [dueDate, setDueDate] = useState(task.due_date ?? "");
   const [loading, setLoading] = useState(false);
 
-  async function handleUpdateTask(event: React.FormEvent) {
-    event.preventDefault();
-    setLoading(true);
+ async function handleUpdateTask(event: React.FormEvent) {
+  event.preventDefault();
+  setLoading(true);
 
-    const { error } = await supabase
-      .from("tasks")
-      .update({
-        title: title.trim(),
-        assignee,
-        priority,
-        status,
-        due_date: dueDate || null,
-      })
-      .eq("id", task.id);
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      title: title.trim(),
+      assignee,
+      priority,
+      status,
+      due_date: dueDate || null,
+    })
+    .eq("id", task.id);
 
-    setLoading(false);
+  setLoading(false);
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    setOpen(false);
-    router.refresh();
-    window.location.reload();
+  if (error) {
+    alert(error.message);
+    return;
   }
+
+  await logActivity(`Task updated: ${title}`, "task");
+
+  setOpen(false);
+  router.refresh();
+  window.location.reload();
+}
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
