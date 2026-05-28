@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Bell, LogOut, Menu, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -18,6 +19,7 @@ const pageTitles: Record<string, string> = {
   "/": "Dashboard",
   "/projects": "Projects",
   "/tasks": "Tasks",
+  "/tasks/board": "Task Board",
   "/daily-logs": "Daily Logs",
   "/documents": "Documents",
   "/rfis": "RFIs",
@@ -37,6 +39,7 @@ export default function Topbar() {
   const pathname = usePathname();
   const router = useRouter();
   const title = getPageTitle(pathname);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   async function handleLogout() {
     localStorage.removeItem("constructflow-demo");
@@ -48,13 +51,19 @@ export default function Topbar() {
     <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center gap-4">
         <div className="lg:hidden">
-          <Sheet>
+          <Sheet
+            open={mobileMenuOpen}
+            onOpenChange={setMobileMenuOpen}
+          >
             <SheetTrigger className="rounded-lg border p-2">
               <Menu size={20} />
             </SheetTrigger>
 
             <SheetContent side="left" className="w-[280px] p-0">
-              <Sidebar mobile />
+              <Sidebar
+                mobile
+                onNavigate={() => setMobileMenuOpen(false)}
+              />
             </SheetContent>
           </Sheet>
         </div>

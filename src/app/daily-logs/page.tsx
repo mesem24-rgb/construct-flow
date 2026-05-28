@@ -1,66 +1,104 @@
+import Image from "next/image";
+
 import PageHeader from "@/components/ui/PageHeader";
+import NewDailyLogDialog from "@/components/daily-logs/NewDailyLogDialog";
+import { supabase } from "@/lib/supabase";
 
-const dailyLogs = [
-  {
-    date: "May 22, 2026",
-    project: "Gulf Coast Retail Center",
-    weather: "Sunny, 84°F",
-    crew: "12 workers",
-    summary: "Completed framing inspection and began electrical rough-in.",
-  },
-  {
-    date: "May 21, 2026",
-    project: "Bayview Medical Office",
-    weather: "Cloudy, 79°F",
-    crew: "8 workers",
-    summary: "Delivered materials and reviewed updated site plans.",
-  },
-  {
-    date: "May 20, 2026",
-    project: "Ocean Springs Warehouse",
-    weather: "Rain delay",
-    crew: "5 workers",
-    summary: "Work paused due to weather. Rescheduled concrete pour.",
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function DailyLogsPage() {
+export default async function DailyLogsPage() {
+  const { data: logs, error } = await supabase
+    .from("daily_logs")
+    .select(`
+      *,
+      projects (
+        name
+      )
+    `)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
-  title="Daily Logs"
-  description="Track jobsite activity, weather, crew count, and daily progress."
-  actionLabel="New Log"
-/>
+        title="Daily Logs"
+        description="Track daily field activity, manpower, weather, and site progress."
+        action={<NewDailyLogDialog />}
+      />
 
-      <div className="grid gap-4">
-        {dailyLogs.map((log) => (
+      <div className="space-y-4">
+        {logs?.map((log: any) => (
           <div
-            key={`${log.project}-${log.date}`}
+            key={log.id}
             className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="mb-4 flex items-start justify-between">
               <div>
-                <h2 className="text-lg font-semibold">{log.project}</h2>
-                <p className="text-sm text-slate-500">{log.date}</p>
+                <h2 className="text-lg font-semibold">
+                  {log.projects?.name}
+                </h2>
+
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {new Date(log.created_at).toLocaleString()}
+                </p>
               </div>
 
-              <div className="grid gap-4 text-sm sm:grid-cols-2 lg:min-w-[420px]">
-                <div>
-                  <p className="text-slate-400">Weather</p>
-                  <p className="font-medium">{log.weather}</p>
-                </div>
-
-                <div>
-                  <p className="text-slate-400">Crew</p>
-                  <p className="font-medium">{log.crew}</p>
-                </div>
+              <div className="rounded-xl bg-slate-100 px-3 py-1 text-sm dark:bg-slate-800">
+                {log.weather}
               </div>
             </div>
 
-            <p className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
-              {log.summary}
-            </p>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div>
+                <h3 className="mb-2 font-medium">Work Completed</h3>
+
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  {log.work_completed}
+                </p>
+              </div>
+
+              <div>
+                <h3 className="mb-2 font-medium">Delays / Issues</h3>
+
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  {log.delays || "No delays reported"}
+                </p>
+              </div>
+            </div>
+
+            {log.photo_urls?.length > 0 && (
+              <div className="mt-6">
+                <h3 className="mb-3 font-medium">Site Photos</h3>
+
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {log.photo_urls.map((url: string) => (
+                    <a
+                      key={url}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="relative block h-48 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800"
+                    >
+                      <Image
+                        src={url}
+                        alt="Daily log site photo"
+                        fill
+                        className="object-cover transition hover:scale-105"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Crew Count: {log.crew_count}
+              </p>
+            </div>
           </div>
         ))}
       </div>
