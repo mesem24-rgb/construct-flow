@@ -1,77 +1,95 @@
 import PageHeader from "@/components/ui/PageHeader";
+import StatusBadge from "@/components/ui/StatusBadge";
+import NewRfiDialog from "@/components/rfis/NewRfiDialog";
+import EditRfiDialog from "@/components/rfis/EditRfiDialog";
+import DeleteRfiButton from "@/components/rfis/DeleteRfiButton";
+import { supabase } from "@/lib/supabase";
 
-const rfis = [
-  {
-    id: "RFI-001",
-    title: "Confirm wall framing detail at east entrance",
-    project: "Gulf Coast Retail Center",
-    status: "Open",
-    priority: "High",
-    submittedBy: "James Carter",
-    dueDate: "May 25, 2026",
-  },
-  {
-    id: "RFI-002",
-    title: "Clarify electrical panel location",
-    project: "Bayview Medical Office",
-    status: "Pending Review",
-    priority: "Medium",
-    submittedBy: "Tyler Davis",
-    dueDate: "May 27, 2026",
-  },
-  {
-    id: "RFI-003",
-    title: "Verify warehouse dock height adjustment",
-    project: "Ocean Springs Warehouse",
-    status: "Closed",
-    priority: "Low",
-    submittedBy: "Emily Brooks",
-    dueDate: "May 30, 2026",
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function RFIsPage() {
+type Rfi = {
+  id: string;
+  title: string;
+  question: string;
+  status: string;
+  priority: string;
+  due_date: string | null;
+  created_at: string;
+  projects: {
+    name: string;
+  } | null;
+};
+
+export default async function RFIsPage() {
+  const { data: rfis, error } = await supabase
+    .from("rfis")
+    .select(
+      `
+      *,
+      projects (
+        name
+      )
+    `,
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
-  title="RFIs"
-  description="Track requests for information across active projects."
-  actionLabel="New RFI"
-/>
+        title="RFIs"
+        description="Track project questions, clarifications, priorities, and due dates."
+        action={<NewRfiDialog />}
+      />
 
       <div className="grid gap-4">
-        {rfis.map((rfi) => (
+        {(rfis ?? []).map((rfi: Rfi) => (
           <div
             key={rfi.id}
             className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500">{rfi.id}</p>
-                <h2 className="text-lg font-semibold">{rfi.title}</h2>
-                <p className="text-sm text-slate-500">{rfi.project}</p>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-3xl">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  {rfi.projects?.name ?? "Unassigned Project"}
+                </p>
+
+                <h2 className="mt-1 text-lg font-semibold">{rfi.title}</h2>
+
+                <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                  {rfi.question}
+                </p>
               </div>
 
-              <div className="grid gap-4 text-sm sm:grid-cols-4 lg:min-w-[620px]">
-                <div>
-                  <p className="text-slate-400">Status</p>
-                  <p className="font-medium">{rfi.status}</p>
-                </div>
+              <div className="flex min-w-[260px] flex-wrap gap-3 lg:justify-end">
+                <StatusBadge status={rfi.status} />
+                <StatusBadge status={rfi.priority} />
+              </div>
+            </div>
 
-                <div>
-                  <p className="text-slate-400">Priority</p>
-                  <p className="font-medium">{rfi.priority}</p>
-                </div>
+            <div className="flex flex-wrap gap-2">
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                <span>Due: {rfi.due_date || "No due date"}</span>
 
-                <div>
-                  <p className="text-slate-400">Submitted By</p>
-                  <p className="font-medium">{rfi.submittedBy}</p>
-                </div>
+                <span>
+                  Created {new Date(rfi.created_at).toLocaleDateString()}
+                </span>
 
-                <div>
-                  <p className="text-slate-400">Due</p>
-                  <p className="font-medium">{rfi.dueDate}</p>
-                </div>
+                <EditRfiDialog
+                  rfi={{
+                    id: rfi.id,
+                    title: rfi.title,
+                    question: rfi.question,
+                    status: rfi.status,
+                    priority: rfi.priority,
+                    due_date: rfi.due_date,
+                  }}
+                />
+
+                <DeleteRfiButton id={rfi.id} />
               </div>
             </div>
           </div>
