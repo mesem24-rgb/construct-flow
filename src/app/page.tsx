@@ -4,7 +4,7 @@ import TaskStatusChart from "@/components/dashboard/TaskStatusChart";
 import ActiveProjects from "@/components/dashboard/ActiveProjects";
 import UpcomingSchedule from "@/components/dashboard/UpcomingSchedule";
 import DashboardRealtime from "@/components/dashboard/DashboardRealtime";
-
+import ProjectHealthOverview from "@/components/dashboard/ProjectHealthOverview";
 import { supabase } from "@/lib/supabase";
 
 import {
@@ -28,43 +28,40 @@ export default async function HomePage() {
     .neq("status", "Closed");
 
   const { data: projects } = await supabase
-  .from("projects")
-  .select("name, budget, completion");
+    .from("projects")
+    .select("name, budget, completion");
 
   const totalBudget =
     projects?.reduce((total, project) => {
       return total + Number(project.budget ?? 0);
     }, 0) ?? 0;
 
-    const { data: tasks } = await supabase
-  .from("tasks")
-  .select("status");
+  const { data: tasks } = await supabase.from("tasks").select("status");
 
-const taskStatusData = [
-  {
-    name: "Open",
-    value: tasks?.filter((task) => task.status === "Open").length ?? 0,
-  },
-  {
-    name: "In Progress",
-    value:
-      tasks?.filter((task) => task.status === "In Progress").length ?? 0,
-  },
-  {
-    name: "Review",
-    value: tasks?.filter((task) => task.status === "Review").length ?? 0,
-  },
-  {
-    name: "Closed",
-    value: tasks?.filter((task) => task.status === "Closed").length ?? 0,
-  },
-];
+  const taskStatusData = [
+    {
+      name: "Open",
+      value: tasks?.filter((task) => task.status === "Open").length ?? 0,
+    },
+    {
+      name: "In Progress",
+      value: tasks?.filter((task) => task.status === "In Progress").length ?? 0,
+    },
+    {
+      name: "Review",
+      value: tasks?.filter((task) => task.status === "Review").length ?? 0,
+    },
+    {
+      name: "Closed",
+      value: tasks?.filter((task) => task.status === "Closed").length ?? 0,
+    },
+  ];
 
-const budgetChartData =
-  projects?.map((project) => ({
-    project: project.name,
-    budget: Number(project.budget ?? 0),
-  })) ?? [];
+  const budgetChartData =
+    projects?.map((project) => ({
+      project: project.name,
+      budget: Number(project.budget ?? 0),
+    })) ?? [];
 
   return (
     <div className="space-y-6">
@@ -90,11 +87,7 @@ const budgetChartData =
           icon={ClipboardList}
         />
 
-        <StatCard
-          title="Pending RFIs"
-          value="7"
-          icon={FileWarning}
-        />
+        <StatCard title="Pending RFIs" value="7" icon={FileWarning} />
 
         <StatCard
           title="Total Budget"
@@ -104,11 +97,19 @@ const budgetChartData =
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-       <BudgetChart data={budgetChartData} />
+        <BudgetChart data={budgetChartData} />
         <TaskStatusChart data={taskStatusData} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">...</div>
+
+        <ProjectHealthOverview />
+
+        <div className="grid gap-6 xl:grid-cols-2">
+          <BudgetChart data={budgetChartData} />
+          <TaskStatusChart data={taskStatusData} />
+        </div>
         <ActiveProjects />
         <ActivityTimeline />
         <UpcomingSchedule />
