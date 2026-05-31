@@ -25,6 +25,12 @@ type DailyLog = {
   created_at: string;
 };
 
+type ChangeOrder = {
+  project_id: string;
+  status: string;
+  amount: number;
+};
+
 function getHealthColor(label: string) {
   if (label === "Excellent") return "text-emerald-600";
   if (label === "Good") return "text-green-600";
@@ -34,13 +40,19 @@ function getHealthColor(label: string) {
 }
 
 export default async function ProjectHealthOverview() {
-  const [{ data: projects }, { data: tasks }, { data: rfis }, { data: logs }] =
-    await Promise.all([
-      supabase.from("projects").select("id, name, completion"),
-      supabase.from("tasks").select("project_id, status"),
-      supabase.from("rfis").select("project_id, status, due_date"),
-      supabase.from("daily_logs").select("project_id, created_at"),
-    ]);
+  const [
+    { data: projects },
+    { data: tasks },
+    { data: rfis },
+    { data: logs },
+    { data: changeOrders },
+  ] = await Promise.all([
+    supabase.from("projects").select("id, name, completion"),
+    supabase.from("tasks").select("project_id, status"),
+    supabase.from("rfis").select("project_id, status, due_date"),
+    supabase.from("daily_logs").select("project_id, created_at"),
+    supabase.from("change_orders").select("project_id, status, amount"),
+  ]);
 
   const now = new Date();
 
@@ -62,6 +74,10 @@ export default async function ProjectHealthOverview() {
         new Date(log.created_at) >= weekAgo,
     );
 
+    const projectChangeOrders = (
+      (changeOrders ?? []) as ChangeOrder[]
+    ).filter((order) => order.project_id === project.id);
+
     const openTasks = projectTasks.filter(
       (task) => task.status !== "Closed",
     ).length;
@@ -73,11 +89,12 @@ export default async function ProjectHealthOverview() {
     const overdueRfis = projectRfis.filter((rfi) => {
       if (!rfi.due_date) return false;
 
-      return (
-        rfi.status !== "Closed" &&
-        new Date(rfi.due_date) < now
-      );
+      return rfi.status !== "Closed" && new Date(rfi.due_date) < now;
     }).length;
+
+    const pendingChangeOrderValue = projectChangeOrders
+      .filter((order) => order.status === "Pending")
+      .reduce((total, order) => total + Number(order.amount ?? 0), 0);
 
     const health = calculateProjectHealth({
       completion: project.completion,
@@ -85,6 +102,7 @@ export default async function ProjectHealthOverview() {
       openRfis,
       overdueRfis,
       dailyLogsThisWeek: projectLogs.length,
+      pendingChangeOrderValue,
     });
 
     return {
@@ -93,6 +111,7 @@ export default async function ProjectHealthOverview() {
       openRfis,
       overdueRfis,
       dailyLogsThisWeek: projectLogs.length,
+      pendingChangeOrderValue,
       health,
     };
   });
@@ -104,10 +123,8 @@ export default async function ProjectHealthOverview() {
   const portfolioScore =
     healthRows.length > 0
       ? Math.round(
-          healthRows.reduce(
-            (total, row) => total + row.health.score,
-            0,
-          ) / healthRows.length,
+          healthRows.reduce((total, row) => total + row.health.score, 0) /
+            healthRows.length,
         )
       : 100;
 
@@ -118,7 +135,8 @@ export default async function ProjectHealthOverview() {
           <h2 className="text-xl font-semibold">Project Health</h2>
 
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Risk score based on tasks, RFIs, daily logs, and progress.
+            Risk score based on tasks, RFIs, daily logs, change orders, and
+            progress.
           </p>
         </div>
 
@@ -134,7 +152,7 @@ export default async function ProjectHealthOverview() {
             href={`/projects/${project.id}`}
             className="block rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
           >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div>
                 <h3 className="font-medium">{project.name}</h3>
 
@@ -147,7 +165,7 @@ export default async function ProjectHealthOverview() {
                 </p>
               </div>
 
-              <div className="grid gap-3 text-sm sm:grid-cols-4 lg:min-w-[520px]">
+              <div className="grid gap-3 text-sm sm:grid-cols-5 xl:min-w-[650px]">
                 <div>
                   <p className="text-slate-400">Tasks</p>
                   <p className="font-medium">{project.openTasks}</p>
@@ -165,8 +183,13 @@ export default async function ProjectHealthOverview() {
 
                 <div>
                   <p className="text-slate-400">Logs</p>
+                  <p className="font-medium">{project.dailyLogsThisWeek}</p>
+                </div>
+
+                <div>
+                  <p className="text-slate-400">Pending CO</p>
                   <p className="font-medium">
-                    {project.dailyLogsThisWeek}
+                    ${project.pendingChangeOrderValue.toLocaleString()}
                   </p>
                 </div>
               </div>

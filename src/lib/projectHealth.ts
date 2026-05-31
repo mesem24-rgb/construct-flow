@@ -4,6 +4,7 @@ type ProjectHealthInput = {
   openRfis: number;
   overdueRfis: number;
   dailyLogsThisWeek: number;
+  pendingChangeOrderValue: number;
 };
 
 export function calculateProjectHealth({
@@ -12,6 +13,7 @@ export function calculateProjectHealth({
   openRfis,
   overdueRfis,
   dailyLogsThisWeek,
+  pendingChangeOrderValue,
 }: ProjectHealthInput) {
   let score = 100;
 
@@ -24,6 +26,14 @@ export function calculateProjectHealth({
   }
 
   if (completion < 25 && openTasks > 10) {
+    score -= 10;
+  }
+
+  if (pendingChangeOrderValue > 0) {
+    score -= 5;
+  }
+
+  if (pendingChangeOrderValue > 10000) {
     score -= 10;
   }
 
