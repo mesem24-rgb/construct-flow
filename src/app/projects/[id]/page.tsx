@@ -11,6 +11,10 @@ import UploadDocumentDialog from "@/components/documents/UploadDocumentDialog";
 import DocumentList from "@/components/documents/DocumentList";
 import DeleteProjectButton from "@/components/projects/DeleteProjectButton";
 
+import NewRfiDialog from "@/components/rfis/NewRfiDialog";
+import NewChangeOrderDialog from "@/components/change-orders/NewChangeOrderDialog";
+import NewDailyLogDialog from "@/components/daily-logs/NewDailyLogDialog";
+
 export const dynamic = "force-dynamic";
 
 type Project = {
@@ -139,6 +143,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         action={
           <div className="flex flex-wrap gap-3">
             <NewTaskDialog defaultProjectId={typedProject.id} />
+            <NewRfiDialog defaultProjectId={typedProject.id} />
+            <NewChangeOrderDialog defaultProjectId={typedProject.id} />
+            <NewDailyLogDialog defaultProjectId={typedProject.id} />
 
             <EditProjectDialog
               project={{
@@ -166,8 +173,14 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {[
           ["Completion", `${typedProject.completion}%`],
-          ["Open Tasks", typedTasks.filter((task) => task.status !== "Closed").length],
-          ["Open RFIs", typedRfis.filter((rfi) => rfi.status !== "Closed").length],
+          [
+            "Open Tasks",
+            typedTasks.filter((task) => task.status !== "Closed").length,
+          ],
+          [
+            "Open RFIs",
+            typedRfis.filter((rfi) => rfi.status !== "Closed").length,
+          ],
           ["Pending CO", `$${pendingChangeOrderValue.toLocaleString()}`],
         ].map(([title, value]) => (
           <div

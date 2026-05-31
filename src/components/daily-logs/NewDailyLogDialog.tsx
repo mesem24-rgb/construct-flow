@@ -19,12 +19,18 @@ type Project = {
   name: string;
 };
 
-export default function NewDailyLogDialog() {
+type NewDailyLogDialogProps = {
+  defaultProjectId?: string;
+};
+
+export default function NewDailyLogDialog({
+  defaultProjectId,
+}: NewDailyLogDialogProps) {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [projectId, setProjectId] = useState("");
+  const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const [weather, setWeather] = useState("Clear");
   const [crewCount, setCrewCount] = useState("0");
   const [workCompleted, setWorkCompleted] = useState("");
@@ -41,12 +47,12 @@ export default function NewDailyLogDialog() {
 
       if (data) {
         setProjects(data);
-        setProjectId(data[0]?.id ?? "");
+        setProjectId(defaultProjectId ?? data[0]?.id ?? "");
       }
     }
 
     loadProjects();
-  }, []);
+  }, [defaultProjectId]);
 
   async function handleCreateLog(event: React.FormEvent) {
     event.preventDefault();

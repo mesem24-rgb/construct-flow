@@ -19,12 +19,18 @@ type Project = {
   name: string;
 };
 
-export default function NewChangeOrderDialog() {
+type NewChangeOrderDialogProps = {
+  defaultProjectId?: string;
+};
+
+export default function NewChangeOrderDialog({
+  defaultProjectId,
+}: NewChangeOrderDialogProps) {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [projectId, setProjectId] = useState("");
+  const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("0");
@@ -41,12 +47,12 @@ export default function NewChangeOrderDialog() {
 
       if (data) {
         setProjects(data);
-        setProjectId(data[0]?.id ?? "");
+        setProjectId(defaultProjectId ?? data[0]?.id ?? "");
       }
     }
 
     loadProjects();
-  }, []);
+  }, [defaultProjectId]);
 
   async function handleCreateChangeOrder(event: React.FormEvent) {
     event.preventDefault();

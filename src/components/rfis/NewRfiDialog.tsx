@@ -19,12 +19,18 @@ type Project = {
   name: string;
 };
 
-export default function NewRfiDialog() {
+type NewRfiDialogProps = {
+  defaultProjectId?: string;
+};
+
+export default function NewRfiDialog({
+  defaultProjectId,
+}: NewRfiDialogProps) {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [projectId, setProjectId] = useState("");
+  const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const [title, setTitle] = useState("");
   const [question, setQuestion] = useState("");
   const [status, setStatus] = useState("Open");
@@ -41,12 +47,12 @@ export default function NewRfiDialog() {
 
       if (data) {
         setProjects(data);
-        setProjectId(data[0]?.id ?? "");
+        setProjectId(defaultProjectId ?? data[0]?.id ?? "");
       }
     }
 
     loadProjects();
-  }, []);
+  }, [defaultProjectId]);
 
   async function handleCreateRfi(event: React.FormEvent) {
     event.preventDefault();
