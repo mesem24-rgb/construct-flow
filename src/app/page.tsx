@@ -5,6 +5,8 @@ import ActiveProjects from "@/components/dashboard/ActiveProjects";
 import UpcomingSchedule from "@/components/dashboard/UpcomingSchedule";
 import DashboardRealtime from "@/components/dashboard/DashboardRealtime";
 import ProjectHealthOverview from "@/components/dashboard/ProjectHealthOverview";
+import ActivityTimeline from "@/components/dashboard/ActivityTimeline";
+
 import { supabase } from "@/lib/supabase";
 
 import {
@@ -13,7 +15,6 @@ import {
   FileWarning,
   DollarSign,
 } from "lucide-react";
-import ActivityTimeline from "@/components/dashboard/ActivityTimeline";
 
 export const dynamic = "force-dynamic";
 
@@ -31,12 +32,23 @@ export default async function HomePage() {
     .from("projects")
     .select("name, budget, completion");
 
+  const { data: tasks } = await supabase
+    .from("tasks")
+    .select("status");
+
+  const { data: changeOrders } = await supabase
+    .from("change_orders")
+    .select("amount, status");
+
   const totalBudget =
     projects?.reduce((total, project) => {
       return total + Number(project.budget ?? 0);
     }, 0) ?? 0;
 
-  const { data: tasks } = await supabase.from("tasks").select("status");
+  const pendingChangeOrderValue =
+    changeOrders
+      ?.filter((order) => order.status === "Pending")
+      .reduce((total, order) => total + Number(order.amount ?? 0), 0) ?? 0;
 
   const taskStatusData = [
     {
@@ -45,7 +57,8 @@ export default async function HomePage() {
     },
     {
       name: "In Progress",
-      value: tasks?.filter((task) => task.status === "In Progress").length ?? 0,
+      value:
+        tasks?.filter((task) => task.status === "In Progress").length ?? 0,
     },
     {
       name: "Review",
@@ -66,6 +79,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-6">
       <DashboardRealtime />
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
 
@@ -87,7 +101,11 @@ export default async function HomePage() {
           icon={ClipboardList}
         />
 
-        <StatCard title="Pending RFIs" value="7" icon={FileWarning} />
+        <StatCard
+          title="Pending CO Value"
+          value={`$${pendingChangeOrderValue.toLocaleString()}`}
+          icon={FileWarning}
+        />
 
         <StatCard
           title="Total Budget"
@@ -96,20 +114,14 @@ export default async function HomePage() {
         />
       </div>
 
+      <ProjectHealthOverview />
+
       <div className="grid gap-6 xl:grid-cols-2">
         <BudgetChart data={budgetChartData} />
         <TaskStatusChart data={taskStatusData} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">...</div>
-
-        <ProjectHealthOverview />
-
-        <div className="grid gap-6 xl:grid-cols-2">
-          <BudgetChart data={budgetChartData} />
-          <TaskStatusChart data={taskStatusData} />
-        </div>
         <ActiveProjects />
         <ActivityTimeline />
         <UpcomingSchedule />
