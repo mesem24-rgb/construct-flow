@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
 import { supabase } from "@/lib/supabase";
 
 export default function DashboardRealtime() {
@@ -10,6 +11,7 @@ export default function DashboardRealtime() {
   useEffect(() => {
     const channel = supabase
       .channel("dashboard-realtime")
+
       .on(
         "postgres_changes",
         {
@@ -17,11 +19,9 @@ export default function DashboardRealtime() {
           schema: "public",
           table: "tasks",
         },
-        (payload) => {
-          console.log("Dashboard task realtime:", payload);
-          router.refresh();
-        },
+        () => router.refresh(),
       )
+
       .on(
         "postgres_changes",
         {
@@ -29,14 +29,50 @@ export default function DashboardRealtime() {
           schema: "public",
           table: "projects",
         },
-        (payload) => {
-          console.log("Dashboard project realtime:", payload);
-          router.refresh();
-        },
+        () => router.refresh(),
       )
-      .subscribe((status) => {
-        console.log("Dashboard realtime status:", status);
-      });
+
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "rfis",
+        },
+        () => router.refresh(),
+      )
+
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "change_orders",
+        },
+        () => router.refresh(),
+      )
+
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "daily_logs",
+        },
+        () => router.refresh(),
+      )
+
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "activity_logs",
+        },
+        () => router.refresh(),
+      )
+
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);

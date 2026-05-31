@@ -32,9 +32,7 @@ export default async function HomePage() {
     .from("projects")
     .select("name, budget, completion");
 
-  const { data: tasks } = await supabase
-    .from("tasks")
-    .select("status");
+  const { data: tasks } = await supabase.from("tasks").select("status");
 
   const { data: changeOrders } = await supabase
     .from("change_orders")
@@ -50,6 +48,11 @@ export default async function HomePage() {
       ?.filter((order) => order.status === "Pending")
       .reduce((total, order) => total + Number(order.amount ?? 0), 0) ?? 0;
 
+  const { count: openRfiCount } = await supabase
+    .from("rfis")
+    .select("*", { count: "exact", head: true })
+    .neq("status", "Closed");
+
   const taskStatusData = [
     {
       name: "Open",
@@ -57,8 +60,7 @@ export default async function HomePage() {
     },
     {
       name: "In Progress",
-      value:
-        tasks?.filter((task) => task.status === "In Progress").length ?? 0,
+      value: tasks?.filter((task) => task.status === "In Progress").length ?? 0,
     },
     {
       name: "Review",
@@ -88,7 +90,7 @@ export default async function HomePage() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
         <StatCard
           title="Active Projects"
           value={String(projectCount ?? 0)}
@@ -111,6 +113,12 @@ export default async function HomePage() {
           title="Total Budget"
           value={`$${totalBudget.toLocaleString()}`}
           icon={DollarSign}
+        />
+
+        <StatCard
+          title="Open RFIs"
+          value={String(openRfiCount ?? 0)}
+          icon={FileWarning}
         />
       </div>
 
