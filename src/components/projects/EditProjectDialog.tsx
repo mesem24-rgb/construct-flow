@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { logActivity } from "@/lib/activity";
+
 import { supabase } from "@/lib/supabase";
+import { logActivity } from "@/lib/activity";
 
 import {
   Dialog,
@@ -19,6 +20,8 @@ type EditProjectDialogProps = {
     name: string;
     status: string;
     budget: number;
+    original_budget?: number;
+    revised_budget?: number;
     completion: number;
   };
 };
@@ -30,7 +33,9 @@ export default function EditProjectDialog({
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(project.name);
-  const [budget, setBudget] = useState(String(project.budget));
+  const [originalBudget, setOriginalBudget] = useState(
+    String(project.original_budget ?? project.budget ?? 0),
+  );
   const [status, setStatus] = useState(project.status);
   const [completion, setCompletion] = useState(String(project.completion));
   const [loading, setLoading] = useState(false);
@@ -39,16 +44,18 @@ export default function EditProjectDialog({
     event.preventDefault();
     setLoading(true);
 
-    const updates = {
-      name: name.trim(),
-      budget: Number(budget),
-      status,
-      completion: Number(completion),
-    };
+    const budgetValue = Number(originalBudget || 0);
 
     const { data, error } = await supabase
       .from("projects")
-      .update(updates)
+      .update({
+        name: name.trim(),
+        budget: budgetValue,
+        original_budget: budgetValue,
+        revised_budget: budgetValue,
+        status,
+        completion: Number(completion),
+      })
       .eq("id", project.id)
       .select();
 
@@ -60,15 +67,10 @@ export default function EditProjectDialog({
       return;
     }
 
-    console.log("Project id being updated:", project.id);
-    console.log("Update result:", data);
-
     if (!data || data.length === 0) {
       alert("No matching project was found to update.");
       return;
     }
-
-    alert("Project updated");
 
     await logActivity(`Project updated: ${name}`, "project");
 
@@ -100,9 +102,9 @@ export default function EditProjectDialog({
           <input
             required
             type="number"
-            value={budget}
-            onChange={(event) => setBudget(event.target.value)}
-            placeholder="Budget"
+            value={originalBudget}
+            onChange={(event) => setOriginalBudget(event.target.value)}
+            placeholder="Original Budget"
             className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
 

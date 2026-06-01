@@ -19,7 +19,7 @@ export default function NewProjectDialog() {
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [budget, setBudget] = useState("");
+  const [originalBudget, setOriginalBudget] = useState("");
   const [status, setStatus] = useState("Planning");
   const [loading, setLoading] = useState(false);
 
@@ -27,9 +27,13 @@ export default function NewProjectDialog() {
     event.preventDefault();
     setLoading(true);
 
+    const budgetValue = Number(originalBudget || 0);
+
     const { error } = await supabase.from("projects").insert({
       name,
-      budget: Number(budget),
+      budget: budgetValue,
+      original_budget: budgetValue,
+      revised_budget: budgetValue,
       status,
       completion: 0,
       open_tasks: 0,
@@ -43,21 +47,22 @@ export default function NewProjectDialog() {
       return;
     }
 
+    await logActivity(`Project created: ${name}`, "project");
+
     setName("");
-    setBudget("");
+    setOriginalBudget("");
     setStatus("Planning");
     setOpen(false);
-    router.refresh();
-    
-    await logActivity(`Project created: ${name}`, "project");
-  }
 
+    router.refresh();
+    window.location.reload();
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-     <DialogTrigger className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900">
-  New Project
-</DialogTrigger>
+      <DialogTrigger className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900">
+        New Project
+      </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
@@ -76,9 +81,9 @@ export default function NewProjectDialog() {
           <input
             required
             type="number"
-            value={budget}
-            onChange={(event) => setBudget(event.target.value)}
-            placeholder="Budget"
+            value={originalBudget}
+            onChange={(event) => setOriginalBudget(event.target.value)}
+            placeholder="Original Budget"
             className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
 
@@ -90,6 +95,7 @@ export default function NewProjectDialog() {
             <option>Planning</option>
             <option>In Progress</option>
             <option>On Hold</option>
+            <option>Completed</option>
           </select>
 
           <button

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarDays,
+  ClipboardCheck,
   ClipboardList,
   FilePenLine,
   FileText,
@@ -34,6 +35,11 @@ const links: SidebarLink[] = [
   { name: "RFIs", href: "/rfis", icon: MessageSquareWarning },
   { name: "Change Orders", href: "/change-orders", icon: FilePenLine },
   { name: "Contacts", href: "/contacts", icon: Users },
+  {
+  name: "Submittals",
+  href: "/submittals",
+  icon: ClipboardCheck,
+},
 ];
 
 export default function Sidebar({

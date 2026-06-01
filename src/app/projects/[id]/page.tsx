@@ -10,7 +10,6 @@ import EditProjectDialog from "@/components/projects/EditProjectDialog";
 import UploadDocumentDialog from "@/components/documents/UploadDocumentDialog";
 import DocumentList from "@/components/documents/DocumentList";
 import DeleteProjectButton from "@/components/projects/DeleteProjectButton";
-
 import NewRfiDialog from "@/components/rfis/NewRfiDialog";
 import NewChangeOrderDialog from "@/components/change-orders/NewChangeOrderDialog";
 import NewDailyLogDialog from "@/components/daily-logs/NewDailyLogDialog";
@@ -22,6 +21,8 @@ type Project = {
   name: string;
   status: string;
   budget: number;
+  original_budget: number;
+  revised_budget: number;
   completion: number;
 };
 
@@ -131,9 +132,19 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const typedChangeOrders = (changeOrders ?? []) as ChangeOrder[];
   const typedDailyLogs = (dailyLogs ?? []) as DailyLog[];
 
-  const pendingChangeOrderValue = typedChangeOrders
+  const approvedChangeOrders = typedChangeOrders
+    .filter((order) => order.status === "Approved")
+    .reduce((total, order) => total + Number(order.amount ?? 0), 0);
+
+  const pendingChangeOrders = typedChangeOrders
     .filter((order) => order.status === "Pending")
     .reduce((total, order) => total + Number(order.amount ?? 0), 0);
+
+  const originalBudget = Number(
+    typedProject.original_budget ?? typedProject.budget ?? 0,
+  );
+
+  const revisedBudget = originalBudget + approvedChangeOrders;
 
   return (
     <div className="space-y-6">
@@ -153,6 +164,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 name: typedProject.name,
                 status: typedProject.status,
                 budget: typedProject.budget,
+                original_budget: typedProject.original_budget,
+                revised_budget: typedProject.revised_budget,
                 completion: typedProject.completion,
               }}
             />
@@ -166,7 +179,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         <StatusBadge status={typedProject.status} />
 
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Budget: ${Number(typedProject.budget).toLocaleString()}
+          Budget: ${Number(revisedBudget).toLocaleString()}
         </p>
       </div>
 
@@ -181,7 +194,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             "Open RFIs",
             typedRfis.filter((rfi) => rfi.status !== "Closed").length,
           ],
-          ["Pending CO", `$${pendingChangeOrderValue.toLocaleString()}`],
+          ["Pending CO", `$${pendingChangeOrders.toLocaleString()}`],
         ].map(([title, value]) => (
           <div
             key={title}
@@ -194,6 +207,30 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <h3 className="mt-2 text-3xl font-bold">{value}</h3>
           </div>
         ))}
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="mb-4 text-xl font-semibold">Project Financials</h2>
+
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            ["Original Budget", `$${originalBudget.toLocaleString()}`],
+            ["Approved COs", `$${approvedChangeOrders.toLocaleString()}`],
+            ["Pending COs", `$${pendingChangeOrders.toLocaleString()}`],
+            ["Revised Budget", `$${revisedBudget.toLocaleString()}`],
+          ].map(([title, value]) => (
+            <div
+              key={title}
+              className="rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+            >
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {title}
+              </p>
+
+              <p className="mt-2 text-2xl font-bold">{value}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
@@ -240,6 +277,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-medium">{order.title}</h3>
+
                       <div className="mt-3">
                         <StatusBadge status={order.status} />
                       </div>
