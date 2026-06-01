@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
@@ -13,6 +13,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
+type Contact = {
+  id: string;
+  name: string;
+};
 
 type EditSubmittalDialogProps = {
   submittal: {
@@ -32,6 +37,7 @@ export default function EditSubmittalDialog({
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [title, setTitle] = useState(submittal.title);
   const [specificationSection, setSpecificationSection] = useState(
     submittal.specification_section ?? "",
@@ -45,6 +51,21 @@ export default function EditSubmittalDialog({
   );
   const [dueDate, setDueDate] = useState(submittal.due_date ?? "");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadContacts() {
+      const { data } = await supabase
+        .from("contacts")
+        .select("id, name")
+        .order("name");
+
+      if (data) {
+        setContacts(data);
+      }
+    }
+
+    loadContacts();
+  }, []);
 
   async function handleUpdateSubmittal(event: React.FormEvent) {
     event.preventDefault();
@@ -124,12 +145,19 @@ export default function EditSubmittalDialog({
               <option>Revise and Resubmit</option>
             </select>
 
-            <input
+            <select
               value={assignedTo}
               onChange={(event) => setAssignedTo(event.target.value)}
-              placeholder="Assigned to"
               className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
-            />
+            >
+              <option value="">Unassigned</option>
+
+              {contacts.map((contact) => (
+                <option key={contact.id} value={contact.name}>
+                  {contact.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <input

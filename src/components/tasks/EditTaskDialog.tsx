@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { logActivity } from "@/lib/activity";
 import { supabase } from "@/lib/supabase";
@@ -24,6 +24,11 @@ type EditTaskDialogProps = {
   };
 };
 
+type Contact = {
+  id: string;
+  name: string;
+};
+
 export default function EditTaskDialog({ task }: EditTaskDialogProps) {
   const router = useRouter();
 
@@ -34,35 +39,51 @@ export default function EditTaskDialog({ task }: EditTaskDialogProps) {
   const [status, setStatus] = useState(task.status);
   const [dueDate, setDueDate] = useState(task.due_date ?? "");
   const [loading, setLoading] = useState(false);
+  const [contacts, setContacts] = useState<Contact[]>([]);
 
- async function handleUpdateTask(event: React.FormEvent) {
-  event.preventDefault();
-  setLoading(true);
+  useEffect(() => {
+    async function loadContacts() {
+      const { data } = await supabase
+        .from("contacts")
+        .select("id, name")
+        .order("name");
 
-  const { error } = await supabase
-    .from("tasks")
-    .update({
-      title: title.trim(),
-      assignee,
-      priority,
-      status,
-      due_date: dueDate || null,
-    })
-    .eq("id", task.id);
+      if (data) {
+        setContacts(data);
+      }
+    }
 
-  setLoading(false);
+    loadContacts();
+  }, []);
 
-  if (error) {
-    alert(error.message);
-    return;
+  async function handleUpdateTask(event: React.FormEvent) {
+    event.preventDefault();
+    setLoading(true);
+
+    const { error } = await supabase
+      .from("tasks")
+      .update({
+        title: title.trim(),
+        assignee,
+        priority,
+        status,
+        due_date: dueDate || null,
+      })
+      .eq("id", task.id);
+
+    setLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await logActivity(`Task updated: ${title}`, "task");
+
+    setOpen(false);
+    router.refresh();
+    window.location.reload();
   }
-
-  await logActivity(`Task updated: ${title}`, "task");
-
-  setOpen(false);
-  router.refresh();
-  window.location.reload();
-}
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -83,12 +104,19 @@ export default function EditTaskDialog({ task }: EditTaskDialogProps) {
             className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
 
-          <input
+          <select
             value={assignee}
             onChange={(event) => setAssignee(event.target.value)}
-            placeholder="Assignee"
             className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
-          />
+          >
+            <option value="">Unassigned</option>
+
+            {contacts.map((contact) => (
+              <option key={contact.id} value={contact.name}>
+                {contact.name}
+              </option>
+            ))}
+          </select>
 
           <select
             value={priority}

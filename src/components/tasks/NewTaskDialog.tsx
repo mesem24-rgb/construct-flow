@@ -16,17 +16,20 @@ import {
 type Project = {
   id: string;
   name: string;
-  
 };
 
 type NewTaskDialogProps = {
   defaultProjectId?: string;
 };
 
+type Contact = {
+  id: string;
+  name: string;
+};
+
 export default function NewTaskDialog({
   defaultProjectId,
 }: NewTaskDialogProps) {
-
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
@@ -38,70 +41,73 @@ export default function NewTaskDialog({
   const [status, setStatus] = useState("Open");
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
+  const [contacts, setContacts] = useState<Contact[]>([]);
 
   useEffect(() => {
-    async function loadProjects() {
-      const { data } = await supabase
-        .from("projects")
-        .select("id, name")
-        .order("name");
+    async function loadData() {
+      const [{ data: projectData }, { data: contactData }] = await Promise.all([
+        supabase.from("projects").select("id, name").order("name"),
 
-      if (data) {
-        setProjects(data);
-        setProjectId(defaultProjectId || data[0]?.id || "");
+        supabase.from("contacts").select("id, name").order("name"),
+      ]);
+
+      if (projectData) {
+        setProjects(projectData);
+        setProjectId(defaultProjectId || projectData[0]?.id || "");
+      }
+
+      if (contactData) {
+        setContacts(contactData);
       }
     }
 
-    loadProjects();
+    loadData();
   }, [defaultProjectId]);
 
   async function handleCreateTask(event: React.FormEvent) {
-  event.preventDefault();
+    event.preventDefault();
 
-  if (!title.trim()) {
-    alert("Task title is required");
-    return;
+    if (!title.trim()) {
+      alert("Task title is required");
+      return;
+    }
+
+    if (!projectId) {
+      alert("Please select a project");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await supabase.from("tasks").insert({
+      title,
+      project_id: projectId,
+      assignee,
+      priority,
+      status,
+      due_date: dueDate || null,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await logActivity(`Task created: ${title}`, "task");
+
+    alert("Task created");
+
+    setTitle("");
+    setAssignee("");
+    setPriority("Medium");
+    setStatus("Open");
+    setDueDate("");
+    setOpen(false);
+
+    router.refresh();
   }
-
-  if (!projectId) {
-    alert("Please select a project");
-    return;
-  }
-
-  setLoading(true);
-
-
-
-  const { error } = await supabase.from("tasks").insert({
-    title,
-    project_id: projectId,
-    assignee,
-    priority,
-    status,
-    due_date: dueDate || null,
-  });
-
-  setLoading(false);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-await logActivity(`Task created: ${title}`, "task");
-
-
-  alert("Task created");
-
-  setTitle("");
-  setAssignee("");
-  setPriority("Medium");
-  setStatus("Open");
-  setDueDate("");
-  setOpen(false);
-
-  router.refresh();
-}
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -136,12 +142,19 @@ await logActivity(`Task created: ${title}`, "task");
             ))}
           </select>
 
-          <input
+          <select
             value={assignee}
             onChange={(event) => setAssignee(event.target.value)}
-            placeholder="Assignee"
             className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
-          />
+          >
+            <option value="">Unassigned</option>
+
+            {contacts.map((contact) => (
+              <option key={contact.id} value={contact.name}>
+                {contact.name}
+              </option>
+            ))}
+          </select>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <select

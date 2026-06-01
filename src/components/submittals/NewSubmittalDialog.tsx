@@ -19,6 +19,11 @@ type Project = {
   name: string;
 };
 
+type Contact = {
+  id: string;
+  name: string;
+};
+
 type NewSubmittalDialogProps = {
   defaultProjectId?: string;
 };
@@ -30,6 +35,7 @@ export default function NewSubmittalDialog({
 
   const [open, setOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const [title, setTitle] = useState("");
   const [specificationSection, setSpecificationSection] = useState("");
@@ -40,19 +46,24 @@ export default function NewSubmittalDialog({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    async function loadProjects() {
-      const { data } = await supabase
-        .from("projects")
-        .select("id, name")
-        .order("name");
+    async function loadData() {
+      const [{ data: projectData }, { data: contactData }] =
+        await Promise.all([
+          supabase.from("projects").select("id, name").order("name"),
+          supabase.from("contacts").select("id, name").order("name"),
+        ]);
 
-      if (data) {
-        setProjects(data);
-        setProjectId(defaultProjectId ?? data[0]?.id ?? "");
+      if (projectData) {
+        setProjects(projectData);
+        setProjectId(defaultProjectId ?? projectData[0]?.id ?? "");
+      }
+
+      if (contactData) {
+        setContacts(contactData);
       }
     }
 
-    loadProjects();
+    loadData();
   }, [defaultProjectId]);
 
   async function handleCreateSubmittal(event: React.FormEvent) {
@@ -153,12 +164,19 @@ export default function NewSubmittalDialog({
               <option>Revise and Resubmit</option>
             </select>
 
-            <input
+            <select
               value={assignedTo}
               onChange={(event) => setAssignedTo(event.target.value)}
-              placeholder="Assigned to"
               className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
-            />
+            >
+              <option value="">Unassigned</option>
+
+              {contacts.map((contact) => (
+                <option key={contact.id} value={contact.name}>
+                  {contact.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <input

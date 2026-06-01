@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
@@ -14,27 +14,54 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+type Contact = {
+  id: string;
+  name: string;
+};
+
 type EditRfiDialogProps = {
   rfi: {
     id: string;
     title: string;
-    question: string;
+    question: string | null;
+    assigned_to: string | null;
     status: string;
     priority: string;
     due_date: string | null;
   };
 };
 
-export default function EditRfiDialog({ rfi }: EditRfiDialogProps) {
+export default function EditRfiDialog({
+  rfi,
+}: EditRfiDialogProps) {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [title, setTitle] = useState(rfi.title);
-  const [question, setQuestion] = useState(rfi.question);
+  const [question, setQuestion] = useState(rfi.question ?? "");
+  const [assignedTo, setAssignedTo] = useState(
+    rfi.assigned_to ?? "",
+  );
   const [status, setStatus] = useState(rfi.status);
   const [priority, setPriority] = useState(rfi.priority);
   const [dueDate, setDueDate] = useState(rfi.due_date ?? "");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadContacts() {
+      const { data } = await supabase
+        .from("contacts")
+        .select("id, name")
+        .order("name");
+
+      if (data) {
+        setContacts(data);
+      }
+    }
+
+    loadContacts();
+  }, []);
 
   async function handleUpdateRfi(event: React.FormEvent) {
     event.preventDefault();
@@ -45,6 +72,7 @@ export default function EditRfiDialog({ rfi }: EditRfiDialogProps) {
       .update({
         title: title.trim(),
         question,
+        assigned_to: assignedTo,
         status,
         priority,
         due_date: dueDate || null,
@@ -85,11 +113,25 @@ export default function EditRfiDialog({ rfi }: EditRfiDialogProps) {
           />
 
           <textarea
-            required
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
+            placeholder="Question or clarification needed"
             className="min-h-32 w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
+
+          <select
+            value={assignedTo}
+            onChange={(event) => setAssignedTo(event.target.value)}
+            className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
+          >
+            <option value="">Unassigned</option>
+
+            {contacts.map((contact) => (
+              <option key={contact.id} value={contact.name}>
+                {contact.name}
+              </option>
+            ))}
+          </select>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <select

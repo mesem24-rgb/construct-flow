@@ -19,6 +19,11 @@ type Project = {
   name: string;
 };
 
+type Contact = {
+  id: string;
+  name: string;
+};
+
 type NewRfiDialogProps = {
   defaultProjectId?: string;
 };
@@ -30,28 +35,35 @@ export default function NewRfiDialog({
 
   const [open, setOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const [title, setTitle] = useState("");
   const [question, setQuestion] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
   const [status, setStatus] = useState("Open");
   const [priority, setPriority] = useState("Medium");
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    async function loadProjects() {
-      const { data } = await supabase
-        .from("projects")
-        .select("id, name")
-        .order("name");
+    async function loadData() {
+      const [{ data: projectData }, { data: contactData }] =
+        await Promise.all([
+          supabase.from("projects").select("id, name").order("name"),
+          supabase.from("contacts").select("id, name").order("name"),
+        ]);
 
-      if (data) {
-        setProjects(data);
-        setProjectId(defaultProjectId ?? data[0]?.id ?? "");
+      if (projectData) {
+        setProjects(projectData);
+        setProjectId(defaultProjectId ?? projectData[0]?.id ?? "");
+      }
+
+      if (contactData) {
+        setContacts(contactData);
       }
     }
 
-    loadProjects();
+    loadData();
   }, [defaultProjectId]);
 
   async function handleCreateRfi(event: React.FormEvent) {
@@ -62,6 +74,7 @@ export default function NewRfiDialog({
       project_id: projectId,
       title,
       question,
+      assigned_to: assignedTo,
       status,
       priority,
       due_date: dueDate || null,
@@ -78,6 +91,7 @@ export default function NewRfiDialog({
 
     setTitle("");
     setQuestion("");
+    setAssignedTo("");
     setStatus("Open");
     setPriority("Medium");
     setDueDate("");
@@ -127,6 +141,20 @@ export default function NewRfiDialog({
             placeholder="Question or clarification needed"
             className="min-h-32 w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
+
+          <select
+            value={assignedTo}
+            onChange={(event) => setAssignedTo(event.target.value)}
+            className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
+          >
+            <option value="">Unassigned</option>
+
+            {contacts.map((contact) => (
+              <option key={contact.id} value={contact.name}>
+                {contact.name}
+              </option>
+            ))}
+          </select>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <select

@@ -11,6 +11,7 @@ type Rfi = {
   id: string;
   title: string;
   question: string;
+  assigned_to: string | null;
   status: string;
   priority: string;
   due_date: string | null;
@@ -83,6 +84,7 @@ export default async function RFIsPage() {
                     id: rfi.id,
                     title: rfi.title,
                     question: rfi.question,
+                    assigned_to: rfi.assigned_to,
                     status: rfi.status,
                     priority: rfi.priority,
                     due_date: rfi.due_date,
