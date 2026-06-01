@@ -72,6 +72,16 @@ export default function DashboardRealtime() {
         () => router.refresh(),
       )
 
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "submittals",
+        },
+        () => router.refresh(),
+      )
+
       .subscribe();
 
     return () => {

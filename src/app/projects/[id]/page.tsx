@@ -65,6 +65,14 @@ type DailyLog = {
   created_at: string;
 };
 
+type Submittal = {
+  id: string;
+  title: string;
+  status: string;
+  assigned_to: string | null;
+  due_date: string | null;
+};
+
 interface ProjectPageProps {
   params: Promise<{
     id: string;
@@ -143,6 +151,15 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const originalBudget = Number(
     typedProject.original_budget ?? typedProject.budget ?? 0,
   );
+
+  const { data: submittals } = await supabase
+  .from("submittals")
+  .select("id, title, status, assigned_to, due_date")
+  .eq("project_id", id)
+  .order("created_at", { ascending: false })
+  .limit(5);
+
+const typedSubmittals = (submittals ?? []) as Submittal[];
 
   const revisedBudget = originalBudget + approvedChangeOrders;
 
