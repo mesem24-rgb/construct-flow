@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { logActivity } from "@/lib/activity";
+
 import { supabase } from "@/lib/supabase";
+import { logActivity } from "@/lib/activity";
 
 import {
   Dialog,
@@ -18,13 +19,13 @@ type Project = {
   name: string;
 };
 
-type NewTaskDialogProps = {
-  defaultProjectId?: string;
-};
-
 type Contact = {
   id: string;
   name: string;
+};
+
+type NewTaskDialogProps = {
+  defaultProjectId?: string;
 };
 
 export default function NewTaskDialog({
@@ -34,54 +35,77 @@ export default function NewTaskDialog({
 
   const [open, setOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const [title, setTitle] = useState("");
-  const [projectId, setProjectId] = useState("");
   const [assignee, setAssignee] = useState("");
   const [priority, setPriority] = useState("Medium");
   const [status, setStatus] = useState("Open");
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
-  const [contacts, setContacts] = useState<Contact[]>([]);
 
   useEffect(() => {
-    async function loadData() {
-      const [{ data: projectData }, { data: contactData }] = await Promise.all([
-        supabase.from("projects").select("id, name").order("name"),
+    async function loadProjects() {
+      const { data } = await supabase
+        .from("projects")
+        .select("id, name")
+        .order("name");
 
-        supabase.from("contacts").select("id, name").order("name"),
-      ]);
-
-      if (projectData) {
-        setProjects(projectData);
-        setProjectId(defaultProjectId || projectData[0]?.id || "");
-      }
-
-      if (contactData) {
-        setContacts(contactData);
+      if (data) {
+        setProjects(data);
+        setProjectId(defaultProjectId || data[0]?.id || "");
       }
     }
 
-    loadData();
+    loadProjects();
   }, [defaultProjectId]);
+
+  async function loadAssignableContacts(selectedProjectId: string) {
+    const { data: teamData } = await supabase
+      .from("project_team_members")
+      .select(
+        `
+        contact:contacts (
+          id,
+          name
+        )
+      `,
+      )
+      .eq("project_id", selectedProjectId);
+
+    const teamContacts =
+      teamData
+        ?.map((member: any) =>
+          Array.isArray(member.contact) ? member.contact[0] : member.contact,
+        )
+        .filter(Boolean) ?? [];
+
+    if (teamContacts.length > 0) {
+      setContacts(teamContacts);
+      return;
+    }
+
+    const { data: allContacts } = await supabase
+      .from("contacts")
+      .select("id, name")
+      .order("name");
+
+    setContacts(allContacts ?? []);
+  }
+
+  useEffect(() => {
+    if (projectId) {
+      loadAssignableContacts(projectId);
+    }
+  }, [projectId]);
 
   async function handleCreateTask(event: React.FormEvent) {
     event.preventDefault();
-
-    if (!title.trim()) {
-      alert("Task title is required");
-      return;
-    }
-
-    if (!projectId) {
-      alert("Please select a project");
-      return;
-    }
-
     setLoading(true);
 
     const { error } = await supabase.from("tasks").insert({
-      title,
       project_id: projectId,
+      title,
       assignee,
       priority,
       status,
@@ -97,8 +121,6 @@ export default function NewTaskDialog({
 
     await logActivity(`Task created: ${title}`, "task");
 
-    alert("Task created");
-
     setTitle("");
     setAssignee("");
     setPriority("Medium");
@@ -107,6 +129,7 @@ export default function NewTaskDialog({
     setOpen(false);
 
     router.refresh();
+    window.location.reload();
   }
 
   return (
@@ -117,18 +140,10 @@ export default function NewTaskDialog({
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Task</DialogTitle>
+          <DialogTitle>Create Task</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleCreateTask} className="space-y-4">
-          <input
-            required
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="Task title"
-            className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
-          />
-
           <select
             required
             value={projectId}
@@ -141,6 +156,14 @@ export default function NewTaskDialog({
               </option>
             ))}
           </select>
+
+          <input
+            required
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Task title"
+            className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
+          />
 
           <select
             value={assignee}

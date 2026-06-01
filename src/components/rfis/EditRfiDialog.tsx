@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+// ===== Types =====
 type Contact = {
   id: string;
   name: string;
@@ -22,6 +23,7 @@ type Contact = {
 type EditRfiDialogProps = {
   rfi: {
     id: string;
+    project_id: string;
     title: string;
     question: string | null;
     assigned_to: string | null;
@@ -31,11 +33,13 @@ type EditRfiDialogProps = {
   };
 };
 
+// ===== Component =====
 export default function EditRfiDialog({
   rfi,
 }: EditRfiDialogProps) {
   const router = useRouter();
 
+  // ===== State =====
   const [open, setOpen] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [title, setTitle] = useState(rfi.title);
@@ -48,21 +52,48 @@ export default function EditRfiDialog({
   const [dueDate, setDueDate] = useState(rfi.due_date ?? "");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    async function loadContacts() {
-      const { data } = await supabase
-        .from("contacts")
-        .select("id, name")
-        .order("name");
+  // ===== Load project team first, fallback to all contacts =====
+  async function loadAssignableContacts(selectedProjectId: string) {
+    const { data: teamData } = await supabase
+      .from("project_team_members")
+      .select(`
+        contact:contacts (
+          id,
+          name
+        )
+      `)
+      .eq("project_id", selectedProjectId);
 
-      if (data) {
-        setContacts(data);
-      }
+    const teamContacts =
+      teamData
+        ?.map((member: any) =>
+          Array.isArray(member.contact)
+            ? member.contact[0]
+            : member.contact,
+        )
+        .filter(Boolean) ?? [];
+
+    if (teamContacts.length > 0) {
+      setContacts(teamContacts);
+      return;
     }
 
-    loadContacts();
-  }, []);
+    const { data: allContacts } = await supabase
+      .from("contacts")
+      .select("id, name")
+      .order("name");
 
+    setContacts(allContacts ?? []);
+  }
+
+  // ===== Load contacts =====
+  useEffect(() => {
+    if (rfi.project_id) {
+      loadAssignableContacts(rfi.project_id);
+    }
+  }, [rfi.project_id]);
+
+  // ===== Update RFI =====
   async function handleUpdateRfi(event: React.FormEvent) {
     event.preventDefault();
     setLoading(true);
@@ -93,6 +124,7 @@ export default function EditRfiDialog({
     window.location.reload();
   }
 
+  // ===== UI =====
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger className="rounded-lg border px-3 py-2 text-sm font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800">
@@ -105,6 +137,7 @@ export default function EditRfiDialog({
         </DialogHeader>
 
         <form onSubmit={handleUpdateRfi} className="space-y-4">
+          {/* Title */}
           <input
             required
             value={title}
@@ -112,13 +145,14 @@ export default function EditRfiDialog({
             className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
 
+          {/* Question */}
           <textarea
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder="Question or clarification needed"
             className="min-h-32 w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
 
+          {/* Assigned contact */}
           <select
             value={assignedTo}
             onChange={(event) => setAssignedTo(event.target.value)}
@@ -133,6 +167,7 @@ export default function EditRfiDialog({
             ))}
           </select>
 
+          {/* Status and priority */}
           <div className="grid gap-4 sm:grid-cols-2">
             <select
               value={status}
@@ -157,6 +192,7 @@ export default function EditRfiDialog({
             </select>
           </div>
 
+          {/* Due date */}
           <input
             type="date"
             value={dueDate}
@@ -164,6 +200,7 @@ export default function EditRfiDialog({
             className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
 
+          {/* Submit */}
           <button
             disabled={loading}
             className="w-full rounded-xl bg-slate-900 px-5 py-3 font-medium text-white transition hover:bg-slate-700 disabled:opacity-50 dark:bg-white dark:text-slate-900"

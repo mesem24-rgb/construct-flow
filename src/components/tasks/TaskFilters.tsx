@@ -3,12 +3,13 @@
 import { useMemo, useState } from "react";
 
 import StatusBadge from "@/components/ui/StatusBadge";
-
 import EditTaskDialog from "@/components/tasks/EditTaskDialog";
 import DeleteTaskButton from "@/components/tasks/DeleteTaskButton";
 
+// ===== Types =====
 type Task = {
   id: string;
+  project_id: string;
   title: string;
   assignee: string | null;
   priority: string;
@@ -16,10 +17,13 @@ type Task = {
   due_date: string | null;
 };
 
+// ===== Component =====
 export default function TaskFilters({ tasks }: { tasks: Task[] }) {
+  // ===== State =====
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
+  // ===== Filtered tasks =====
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       const matchesSearch =
@@ -33,8 +37,10 @@ export default function TaskFilters({ tasks }: { tasks: Task[] }) {
     });
   }, [tasks, search, statusFilter]);
 
+  // ===== UI =====
   return (
     <div className="space-y-6">
+      {/* Search and status filters */}
       <div className="flex flex-col gap-4 lg:flex-row">
         <input
           placeholder="Search tasks..."
@@ -56,41 +62,45 @@ export default function TaskFilters({ tasks }: { tasks: Task[] }) {
         </select>
       </div>
 
+      {/* Empty state */}
       {filteredTasks.length === 0 ? (
-  <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
-    No tasks match your search or filter.
-  </div>
-) : (
-  <div className="space-y-4">
-    {filteredTasks.map((task) => (
-          <div
-            key={task.id}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-          >
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <h3 className="font-medium">{task.title}</h3>
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+          No tasks match your search or filter.
+        </div>
+      ) : (
+        /* Task list */
+        <div className="space-y-4">
+          {filteredTasks.map((task) => (
+            <div
+              key={task.id}
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                {/* Task information */}
+                <div>
+                  <h3 className="font-medium">{task.title}</h3>
 
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {task.assignee || "Unassigned"}
-                </p>
-              </div>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {task.assignee || "Unassigned"}
+                  </p>
+                </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <StatusBadge status={task.priority} />
-                <StatusBadge status={task.status} />
+                {/* Task status and actions */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <StatusBadge status={task.priority} />
+                  <StatusBadge status={task.status} />
 
-                <span className="text-sm text-slate-500 dark:text-slate-400">
-                  Due: {task.due_date || "No due date"}
-                </span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">
+                    Due: {task.due_date || "No due date"}
+                  </span>
 
-                <EditTaskDialog task={task} />
-                <DeleteTaskButton id={task.id} />
+                  <EditTaskDialog task={task} />
+                  <DeleteTaskButton id={task.id} />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       )}
     </div>
   );

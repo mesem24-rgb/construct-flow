@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 type TeamMember = {
   id: string;
   role: string;
-  contacts:
+  contact:
     | {
         id: string;
         name: string;
@@ -53,23 +53,21 @@ export default async function ProjectTeamPage({
   }
 
   const { data: teamMembers, error: teamError } = await supabase
-    .from("project_team_members")
-    .select(
-      `
+  .from("project_team_members")
+  .select(`
+    id,
+    role,
+    contact:contacts (
       id,
-      role,
-      contacts (
-        id,
-        name,
-        company,
-        title,
-        email,
-        phone
-      )
-    `,
+      name,
+      company,
+      title,
+      email,
+      phone
     )
-    .eq("project_id", id)
-    .order("created_at", { ascending: false });
+  `)
+  .eq("project_id", id)
+  .order("created_at", { ascending: false });
 
   if (teamError) {
     throw new Error(teamError.message);
@@ -99,9 +97,9 @@ export default async function ProjectTeamPage({
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {typedTeamMembers.map((member) => {
-            const contact = Array.isArray(member.contacts)
-              ? member.contacts[0]
-              : member.contacts;
+            const contact = Array.isArray(member.contact)
+              ? member.contact[0]
+              : member.contact;
 
             return (
               <div

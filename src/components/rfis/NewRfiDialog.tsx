@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+// ===== Types =====
 type Project = {
   id: string;
   name: string;
@@ -28,11 +29,13 @@ type NewRfiDialogProps = {
   defaultProjectId?: string;
 };
 
+// ===== Component =====
 export default function NewRfiDialog({
   defaultProjectId,
 }: NewRfiDialogProps) {
   const router = useRouter();
 
+  // ===== State =====
   const [open, setOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -45,27 +48,65 @@ export default function NewRfiDialog({
   const [dueDate, setDueDate] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ===== Load projects =====
   useEffect(() => {
-    async function loadData() {
-      const [{ data: projectData }, { data: contactData }] =
-        await Promise.all([
-          supabase.from("projects").select("id, name").order("name"),
-          supabase.from("contacts").select("id, name").order("name"),
-        ]);
+    async function loadProjects() {
+      const { data } = await supabase
+        .from("projects")
+        .select("id, name")
+        .order("name");
 
-      if (projectData) {
-        setProjects(projectData);
-        setProjectId(defaultProjectId ?? projectData[0]?.id ?? "");
-      }
-
-      if (contactData) {
-        setContacts(contactData);
+      if (data) {
+        setProjects(data);
+        setProjectId(defaultProjectId || data[0]?.id || "");
       }
     }
 
-    loadData();
+    loadProjects();
   }, [defaultProjectId]);
 
+  // ===== Load project team first, fallback to all contacts =====
+  async function loadAssignableContacts(selectedProjectId: string) {
+    const { data: teamData } = await supabase
+      .from("project_team_members")
+      .select(`
+        contact:contacts (
+          id,
+          name
+        )
+      `)
+      .eq("project_id", selectedProjectId);
+
+    const teamContacts =
+      teamData
+        ?.map((member: any) =>
+          Array.isArray(member.contact)
+            ? member.contact[0]
+            : member.contact,
+        )
+        .filter(Boolean) ?? [];
+
+    if (teamContacts.length > 0) {
+      setContacts(teamContacts);
+      return;
+    }
+
+    const { data: allContacts } = await supabase
+      .from("contacts")
+      .select("id, name")
+      .order("name");
+
+    setContacts(allContacts ?? []);
+  }
+
+  // ===== Reload assignable contacts when project changes =====
+  useEffect(() => {
+    if (projectId) {
+      loadAssignableContacts(projectId);
+    }
+  }, [projectId]);
+
+  // ===== Create RFI =====
   async function handleCreateRfi(event: React.FormEvent) {
     event.preventDefault();
     setLoading(true);
@@ -101,6 +142,7 @@ export default function NewRfiDialog({
     window.location.reload();
   }
 
+  // ===== UI =====
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900">
@@ -113,6 +155,7 @@ export default function NewRfiDialog({
         </DialogHeader>
 
         <form onSubmit={handleCreateRfi} className="space-y-4">
+          {/* Project */}
           <select
             required
             value={projectId}
@@ -126,6 +169,7 @@ export default function NewRfiDialog({
             ))}
           </select>
 
+          {/* RFI title */}
           <input
             required
             value={title}
@@ -134,6 +178,7 @@ export default function NewRfiDialog({
             className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
 
+          {/* Question */}
           <textarea
             required
             value={question}
@@ -142,6 +187,7 @@ export default function NewRfiDialog({
             className="min-h-32 w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
 
+          {/* Assigned contact from selected project team */}
           <select
             value={assignedTo}
             onChange={(event) => setAssignedTo(event.target.value)}
@@ -156,6 +202,7 @@ export default function NewRfiDialog({
             ))}
           </select>
 
+          {/* Status and priority */}
           <div className="grid gap-4 sm:grid-cols-2">
             <select
               value={status}
@@ -180,6 +227,7 @@ export default function NewRfiDialog({
             </select>
           </div>
 
+          {/* Due date */}
           <input
             type="date"
             value={dueDate}
@@ -187,6 +235,7 @@ export default function NewRfiDialog({
             className="w-full rounded-xl border px-4 py-3 dark:border-slate-700 dark:bg-slate-950"
           />
 
+          {/* Submit */}
           <button
             disabled={loading}
             className="w-full rounded-xl bg-slate-900 px-5 py-3 font-medium text-white transition hover:bg-slate-700 disabled:opacity-50 dark:bg-white dark:text-slate-900"
