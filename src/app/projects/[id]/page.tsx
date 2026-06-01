@@ -13,6 +13,7 @@ import DeleteProjectButton from "@/components/projects/DeleteProjectButton";
 import NewRfiDialog from "@/components/rfis/NewRfiDialog";
 import NewChangeOrderDialog from "@/components/change-orders/NewChangeOrderDialog";
 import NewDailyLogDialog from "@/components/daily-logs/NewDailyLogDialog";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -153,13 +154,13 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   );
 
   const { data: submittals } = await supabase
-  .from("submittals")
-  .select("id, title, status, assigned_to, due_date")
-  .eq("project_id", id)
-  .order("created_at", { ascending: false })
-  .limit(5);
+    .from("submittals")
+    .select("id, title, status, assigned_to, due_date")
+    .eq("project_id", id)
+    .order("created_at", { ascending: false })
+    .limit(5);
 
-const typedSubmittals = (submittals ?? []) as Submittal[];
+  const typedSubmittals = (submittals ?? []) as Submittal[];
 
   const revisedBudget = originalBudget + approvedChangeOrders;
 
@@ -174,7 +175,12 @@ const typedSubmittals = (submittals ?? []) as Submittal[];
             <NewRfiDialog defaultProjectId={typedProject.id} />
             <NewChangeOrderDialog defaultProjectId={typedProject.id} />
             <NewDailyLogDialog defaultProjectId={typedProject.id} />
-
+            <Link
+              href={`/projects/${typedProject.id}/team`}
+              className="rounded-xl border px-4 py-2 text-sm font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+            >
+              Project Team
+            </Link>
             <EditProjectDialog
               project={{
                 id: typedProject.id,
