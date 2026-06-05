@@ -1,7 +1,6 @@
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import NewSubmittalDialog from "@/components/submittals/NewSubmittalDialog";
-
 import EditSubmittalDialog from "@/components/submittals/EditSubmittalDialog";
 import DeleteSubmittalButton from "@/components/submittals/DeleteSubmittalButton";
 
@@ -9,8 +8,10 @@ import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
+// ===== Types =====
 type Submittal = {
   id: string;
+  project_id: string;
   title: string;
   specification_section: string | null;
   description: string | null;
@@ -23,8 +24,20 @@ type Submittal = {
   } | null;
 };
 
-export default async function SubmittalsPage() {
-  const { data: submittals, error } = await supabase
+type SubmittalsPageProps = {
+  searchParams: Promise<{
+    project?: string;
+  }>;
+};
+
+// ===== Page =====
+export default async function SubmittalsPage({
+  searchParams,
+}: SubmittalsPageProps) {
+  const { project } = await searchParams;
+
+  // ===== Build query =====
+  let query = supabase
     .from("submittals")
     .select(`
       *,
@@ -34,16 +47,28 @@ export default async function SubmittalsPage() {
     `)
     .order("created_at", { ascending: false });
 
+  if (project) {
+    query = query.eq("project_id", project);
+  }
+
+  // ===== Load submittals =====
+  const { data: submittals, error } = await query;
+
   if (error) {
     throw new Error(error.message);
   }
 
+  // ===== UI =====
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Submittals"
-        description="Manage material, equipment, and shop drawing approvals."
-        action={<NewSubmittalDialog />}
+        title={project ? "Project Submittals" : "Submittals"}
+        description={
+          project
+            ? "Filtered submittals for the selected project."
+            : "Manage material, equipment, and shop drawing approvals."
+        }
+        action={<NewSubmittalDialog defaultProjectId={project} />}
       />
 
       <div className="grid gap-4">
@@ -52,6 +77,7 @@ export default async function SubmittalsPage() {
             key={submittal.id}
             className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
+            {/* Submittal header */}
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-3xl">
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -71,6 +97,7 @@ export default async function SubmittalsPage() {
                 </p>
               </div>
 
+              {/* Status / assignment */}
               <div className="flex min-w-[220px] flex-col gap-3 lg:items-end">
                 <StatusBadge status={submittal.status} />
 
@@ -80,31 +107,39 @@ export default async function SubmittalsPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-  <EditSubmittalDialog
-    submittal={{
-      id: submittal.id,
-      title: submittal.title,
-      specification_section: submittal.specification_section,
-      description: submittal.description,
-      status: submittal.status,
-      assigned_to: submittal.assigned_to,
-      due_date: submittal.due_date,
-    }}
-  />
-
-  <DeleteSubmittalButton id={submittal.id} />
-</div>
-
+            {/* Submittal footer */}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
               <span>Due: {submittal.due_date || "No due date"}</span>
 
               <span>
                 Created {new Date(submittal.created_at).toLocaleDateString()}
               </span>
+
+              {/* Actions */}
+              <div className="flex flex-wrap gap-2">
+                <EditSubmittalDialog
+                  submittal={{
+                    id: submittal.id,
+                    title: submittal.title,
+                    specification_section: submittal.specification_section,
+                    description: submittal.description,
+                    status: submittal.status,
+                    assigned_to: submittal.assigned_to,
+                    due_date: submittal.due_date,
+                  }}
+                />
+
+                <DeleteSubmittalButton id={submittal.id} />
+              </div>
             </div>
           </div>
         ))}
+
+        {submittals?.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+            No submittals found for this view.
+          </div>
+        )}
       </div>
     </div>
   );

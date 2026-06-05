@@ -1,28 +1,41 @@
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import NewChangeOrderDialog from "@/components/change-orders/NewChangeOrderDialog";
-
 import EditChangeOrderDialog from "@/components/change-orders/EditChangeOrderDialog";
 import DeleteChangeOrderButton from "@/components/change-orders/DeleteChangeOrderButton";
+
 import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
+// ===== Types =====
 type ChangeOrder = {
   id: string;
+  project_id: string;
   title: string;
   description: string | null;
   amount: number;
   status: string;
-  submitted_by: string | null;
   created_at: string;
   projects: {
     name: string;
   } | null;
 };
 
-export default async function ChangeOrdersPage() {
-  const { data: changeOrders, error } = await supabase
+type ChangeOrdersPageProps = {
+  searchParams: Promise<{
+    project?: string;
+  }>;
+};
+
+// ===== Page =====
+export default async function ChangeOrdersPage({
+  searchParams,
+}: ChangeOrdersPageProps) {
+  const { project } = await searchParams;
+
+  // ===== Build query =====
+  let query = supabase
     .from("change_orders")
     .select(`
       *,
@@ -32,49 +45,29 @@ export default async function ChangeOrdersPage() {
     `)
     .order("created_at", { ascending: false });
 
+  if (project) {
+    query = query.eq("project_id", project);
+  }
+
+  // ===== Load change orders =====
+  const { data: changeOrders, error } = await query;
+
   if (error) {
     throw new Error(error.message);
   }
 
-  const totalPending =
-    changeOrders
-      ?.filter((order) => order.status === "Pending")
-      .reduce((total, order) => total + Number(order.amount ?? 0), 0) ?? 0;
-
-  const totalApproved =
-    changeOrders
-      ?.filter((order) => order.status === "Approved")
-      .reduce((total, order) => total + Number(order.amount ?? 0), 0) ?? 0;
-
+  // ===== UI =====
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Change Orders"
-        description="Track project scope changes, budget impact, and approval status."
-        action={<NewChangeOrderDialog />}
+        title={project ? "Project Change Orders" : "Change Orders"}
+        description={
+          project
+            ? "Filtered change orders for the selected project."
+            : "Track project scope changes, financial impact, and approval status."
+        }
+        action={<NewChangeOrderDialog defaultProjectId={project} />}
       />
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Pending Change Value
-          </p>
-
-          <h2 className="mt-2 text-3xl font-bold">
-            ${totalPending.toLocaleString()}
-          </h2>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Approved Change Value
-          </p>
-
-          <h2 className="mt-2 text-3xl font-bold">
-            ${totalApproved.toLocaleString()}
-          </h2>
-        </div>
-      </div>
 
       <div className="grid gap-4">
         {(changeOrders ?? []).map((order: ChangeOrder) => (
@@ -82,6 +75,7 @@ export default async function ChangeOrdersPage() {
             key={order.id}
             className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
+            {/* Change order header */}
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-3xl">
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -97,39 +91,45 @@ export default async function ChangeOrdersPage() {
                 </p>
               </div>
 
-              <div className="flex min-w-[220px] flex-col gap-2 lg:items-end">
-                <StatusBadge status={order.status} />
-
-                <p className="text-2xl font-bold">
-                  ${Number(order.amount).toLocaleString()}
+              {/* Amount / status */}
+              <div className="flex min-w-[220px] flex-col gap-3 lg:items-end">
+                <p className="text-xl font-bold">
+                  ${Number(order.amount ?? 0).toLocaleString()}
                 </p>
+
+                <StatusBadge status={order.status} />
               </div>
             </div>
 
+            {/* Change order footer */}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
-              <span>
-                Submitted by: {order.submitted_by || "Unknown"}
-              </span>
-
- <EditChangeOrderDialog
-    order={{
-      id: order.id,
-      title: order.title,
-      description: order.description,
-      amount: order.amount,
-      status: order.status,
-      submitted_by: order.submitted_by,
-    }}
-  />
-
-  <DeleteChangeOrderButton id={order.id} />
-</div>
-
               <span>
                 Created {new Date(order.created_at).toLocaleDateString()}
               </span>
+
+              {/* Actions */}
+              <div className="flex flex-wrap gap-2">
+                <EditChangeOrderDialog
+                  changeOrder={{
+                    id: order.id,
+                    title: order.title,
+                    description: order.description,
+                    amount: order.amount,
+                    status: order.status,
+                  }}
+                />
+
+                <DeleteChangeOrderButton id={order.id} />
+              </div>
             </div>
+          </div>
         ))}
+
+        {changeOrders?.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+            No change orders found for this view.
+          </div>
+        )}
       </div>
     </div>
   );

@@ -393,6 +393,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
       {/* ===== Project workflow summary cards ===== */}
       <div className="grid gap-6 xl:grid-cols-4">
+
+
         {/* ===== Latest RFIs ===== */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <h2 className="mb-4 text-xl font-semibold">Latest RFIs</h2>
@@ -405,10 +407,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div className="space-y-3">
               {typedRfis.map((rfi) => (
                 <Link
-                  key={rfi.id}
-                  href="/rfis"
-                  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
-                >
+  key={rfi.id}
+  href={`/rfis?project=${typedProject.id}`}
+  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+>
                   <h3 className="font-medium">{rfi.title}</h3>
 
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -433,10 +435,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div className="space-y-3">
               {typedSubmittals.map((submittal) => (
                 <Link
-                  key={submittal.id}
-                  href="/submittals"
-                  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
-                >
+  key={submittal.id}
+  href={`/submittals?project=${typedProject.id}`}
+  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+>
                   <h3 className="font-medium">{submittal.title}</h3>
 
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -464,10 +466,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div className="space-y-3">
               {typedChangeOrders.map((order) => (
                 <Link
-                  key={order.id}
-                  href="/change-orders"
-                  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
-                >
+  key={order.id}
+  href={`/change-orders?project=${typedProject.id}`}
+  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-medium">{order.title}</h3>
@@ -499,10 +501,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div className="space-y-3">
               {typedDailyLogs.map((log) => (
                 <Link
-                  key={log.id}
-                  href="/daily-logs"
-                  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
-                >
+  key={log.id}
+  href={`/daily-logs?project=${typedProject.id}`}
+  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+>
                   <p className="font-medium">
                     {new Date(log.created_at).toLocaleDateString()}
                   </p>

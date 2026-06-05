@@ -24,10 +24,18 @@ type Rfi = {
   } | null;
 };
 
+type RfisPageProps = {
+  searchParams: Promise<{
+    project?: string;
+  }>;
+};
+
 // ===== Page =====
-export default async function RFIsPage() {
-  // ===== Load RFIs =====
-  const { data: rfis, error } = await supabase
+export default async function RFIsPage({ searchParams }: RfisPageProps) {
+  const { project } = await searchParams;
+
+  // ===== Build query =====
+  let query = supabase
     .from("rfis")
     .select(`
       *,
@@ -37,6 +45,13 @@ export default async function RFIsPage() {
     `)
     .order("created_at", { ascending: false });
 
+  if (project) {
+    query = query.eq("project_id", project);
+  }
+
+  // ===== Load RFIs =====
+  const { data: rfis, error } = await query;
+
   if (error) {
     throw new Error(error.message);
   }
@@ -45,9 +60,13 @@ export default async function RFIsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="RFIs"
-        description="Track project questions, clarifications, priorities, and due dates."
-        action={<NewRfiDialog />}
+        title={project ? "Project RFIs" : "RFIs"}
+        description={
+          project
+            ? "Filtered RFIs for the selected project."
+            : "Track project questions, clarifications, priorities, and due dates."
+        }
+        action={<NewRfiDialog defaultProjectId={project} />}
       />
 
       <div className="grid gap-4">
@@ -63,9 +82,7 @@ export default async function RFIsPage() {
                   {rfi.projects?.name ?? "Unassigned Project"}
                 </p>
 
-                <h2 className="mt-1 text-lg font-semibold">
-                  {rfi.title}
-                </h2>
+                <h2 className="mt-1 text-lg font-semibold">{rfi.title}</h2>
 
                 <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
                   {rfi.question}
@@ -111,6 +128,12 @@ export default async function RFIsPage() {
             </div>
           </div>
         ))}
+
+        {rfis?.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+            No RFIs found for this view.
+          </div>
+        )}
       </div>
     </div>
   );
