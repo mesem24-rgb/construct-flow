@@ -30,9 +30,7 @@ type NewRfiDialogProps = {
 };
 
 // ===== Component =====
-export default function NewRfiDialog({
-  defaultProjectId,
-}: NewRfiDialogProps) {
+export default function NewRfiDialog({ defaultProjectId }: NewRfiDialogProps) {
   const router = useRouter();
 
   // ===== State =====
@@ -69,20 +67,20 @@ export default function NewRfiDialog({
   async function loadAssignableContacts(selectedProjectId: string) {
     const { data: teamData } = await supabase
       .from("project_team_members")
-      .select(`
+      .select(
+        `
         contact:contacts (
           id,
           name
         )
-      `)
+      `,
+      )
       .eq("project_id", selectedProjectId);
 
     const teamContacts =
       teamData
         ?.map((member: any) =>
-          Array.isArray(member.contact)
-            ? member.contact[0]
-            : member.contact,
+          Array.isArray(member.contact) ? member.contact[0] : member.contact,
         )
         .filter(Boolean) ?? [];
 
@@ -127,6 +125,14 @@ export default function NewRfiDialog({
       alert(error.message);
       return;
     }
+
+    await supabase.from("notifications").insert({
+      title: "New RFI Created",
+      message: `${title} was created and assigned to ${assignedTo || "Unassigned"}.`,
+      category: "rfi",
+      project_id: projectId,
+      link: "/rfis",
+    });
 
     await logActivity(`RFI created: ${title}`, "rfi");
 

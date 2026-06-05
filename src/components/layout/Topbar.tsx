@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, LogOut, Menu, Search } from "lucide-react";
+import { LogOut, Menu, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import { supabase } from "@/lib/supabase";
@@ -84,10 +85,7 @@ export default function Topbar() {
 
         <ThemeToggle />
 
-        <button className="relative rounded-xl border p-2 transition hover:bg-slate-100 dark:hover:bg-slate-800">
-          <Bell size={20} />
-          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
-        </button>
+        <NotificationBell />
 
         <button
           onClick={handleLogout}

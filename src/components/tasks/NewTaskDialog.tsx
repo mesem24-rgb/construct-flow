@@ -119,6 +119,14 @@ export default function NewTaskDialog({
       return;
     }
 
+    await supabase.from("notifications").insert({
+      title: "New Task Created",
+      message: `${title} was assigned to ${assignee || "Unassigned"}.`,
+      category: "task",
+      project_id: projectId,
+      link: "/tasks",
+    });
+
     await logActivity(`Task created: ${title}`, "task");
 
     setTitle("");

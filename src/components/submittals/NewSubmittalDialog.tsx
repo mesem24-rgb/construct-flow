@@ -87,6 +87,14 @@ export default function NewSubmittalDialog({
       return;
     }
 
+    await supabase.from("notifications").insert({
+      title: "New Submittal Created",
+      message: `${title} was assigned to ${assignedTo || "Unassigned"}.`,
+      category: "submittal",
+      project_id: projectId,
+      link: "/submittals",
+    });
+
     await logActivity(`Submittal created: ${title}`, "submittal");
 
     setTitle("");

@@ -74,6 +74,14 @@ export default function NewChangeOrderDialog({
       return;
     }
 
+    await supabase.from("notifications").insert({
+      title: "New Change Order Created",
+      message: `${title} was created for $${Number(amount).toLocaleString()}.`,
+      category: "change-order",
+      project_id: projectId,
+      link: "/change-orders",
+    });
+
     await logActivity(`Change order created: ${title}`, "change-order");
 
     setTitle("");
