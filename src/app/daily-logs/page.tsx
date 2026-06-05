@@ -37,12 +37,14 @@ export default async function DailyLogsPage({
   // ===== Build query =====
   let query = supabase
     .from("daily_logs")
-    .select(`
+    .select(
+      `
       *,
       projects (
         name
       )
-    `)
+    `,
+    )
     .order("created_at", { ascending: false });
 
   if (project) {

@@ -16,6 +16,7 @@ type ChangeOrder = {
   description: string | null;
   amount: number;
   status: string;
+  submitted_by: string | null;
   created_at: string;
   projects: {
     name: string;
@@ -37,12 +38,14 @@ export default async function ChangeOrdersPage({
   // ===== Build query =====
   let query = supabase
     .from("change_orders")
-    .select(`
+    .select(
+      `
       *,
       projects (
         name
       )
-    `)
+    `,
+    )
     .order("created_at", { ascending: false });
 
   if (project) {
@@ -82,9 +85,7 @@ export default async function ChangeOrdersPage({
                   {order.projects?.name ?? "Unassigned Project"}
                 </p>
 
-                <h2 className="mt-1 text-lg font-semibold">
-                  {order.title}
-                </h2>
+                <h2 className="mt-1 text-lg font-semibold">{order.title}</h2>
 
                 <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
                   {order.description || "No description provided."}
@@ -110,12 +111,13 @@ export default async function ChangeOrdersPage({
               {/* Actions */}
               <div className="flex flex-wrap gap-2">
                 <EditChangeOrderDialog
-                  changeOrder={{
+                  order={{
                     id: order.id,
                     title: order.title,
                     description: order.description,
                     amount: order.amount,
                     status: order.status,
+                    submitted_by: order.submitted_by,
                   }}
                 />
 
