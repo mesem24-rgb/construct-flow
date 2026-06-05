@@ -46,6 +46,21 @@ export default function NotificationBell() {
     setNotifications((data ?? []) as Notification[]);
   }
 
+  // ===== Mark single notification read =====
+  async function markRead(id: string) {
+    const { error } = await supabase
+      .from("notifications")
+      .update({ read: true })
+      .eq("id", id);
+
+    if (error) {
+      console.error(error.message);
+      return;
+    }
+
+    loadNotifications();
+  }
+
   // ===== Mark all notifications read =====
   async function markAllRead() {
     const unreadIds = notifications
@@ -139,8 +154,11 @@ export default function NotificationBell() {
               notifications.map((notification) => (
                 <Link
                   key={notification.id}
-                  href={notification.link || "#"}
-                  onClick={() => setOpen(false)}
+                  href={notification.link || "/"}
+                  onClick={() => {
+                    markRead(notification.id);
+                    setOpen(false);
+                  }}
                   className={`block border-b border-slate-100 p-4 text-sm transition hover:bg-slate-50 last:border-b-0 dark:border-slate-800 dark:hover:bg-slate-800 ${
                     notification.read
                       ? "opacity-70"
