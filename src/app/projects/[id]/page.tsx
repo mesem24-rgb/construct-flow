@@ -6,14 +6,9 @@ import StatusBadge from "@/components/ui/StatusBadge";
 
 import { supabase } from "@/lib/supabase";
 
-import NewTaskDialog from "@/components/tasks/NewTaskDialog";
-import EditProjectDialog from "@/components/projects/EditProjectDialog";
 import UploadDocumentDialog from "@/components/documents/UploadDocumentDialog";
 import DocumentList from "@/components/documents/DocumentList";
-import DeleteProjectButton from "@/components/projects/DeleteProjectButton";
-import NewRfiDialog from "@/components/rfis/NewRfiDialog";
-import NewChangeOrderDialog from "@/components/change-orders/NewChangeOrderDialog";
-import NewDailyLogDialog from "@/components/daily-logs/NewDailyLogDialog";
+import ProjectActionsMenu from "@/components/projects/ProjectActionsMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -224,39 +219,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         title={typedProject.name}
         description="Commercial construction project overview."
         action={
-          <div className="flex flex-col gap-3">
-            {/* ===== Creation Actions ===== */}
-            <div className="flex flex-wrap gap-3">
-              <NewTaskDialog defaultProjectId={typedProject.id} />
-              <NewRfiDialog defaultProjectId={typedProject.id} />
-              <NewChangeOrderDialog defaultProjectId={typedProject.id} />
-              <NewDailyLogDialog defaultProjectId={typedProject.id} />
-            </div>
-
-            {/* ===== Project Management Actions ===== */}
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/projects/${typedProject.id}/team`}
-                className="rounded-xl border px-4 py-2 text-sm font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
-              >
-                Project Team
-              </Link>
-
-              <EditProjectDialog
-                project={{
-                  id: typedProject.id,
-                  name: typedProject.name,
-                  status: typedProject.status,
-                  budget: typedProject.budget,
-                  original_budget: typedProject.original_budget,
-                  revised_budget: typedProject.revised_budget,
-                  completion: typedProject.completion,
-                }}
-              />
-
-              <DeleteProjectButton id={typedProject.id} />
-            </div>
-          </div>
+          <ProjectActionsMenu project={typedProject} /> 
         }
       />
 
@@ -270,7 +233,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       </div>
 
       {/* ===== Project KPI cards ===== */}
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Project Health
