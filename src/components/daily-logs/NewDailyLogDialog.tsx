@@ -21,7 +21,7 @@ type Project = {
 
 type NewDailyLogDialogProps = {
   defaultProjectId?: string;
-  triggerText?: string;
+  triggerText?: React.ReactNode;
   triggerClassName?: string;
 };
 

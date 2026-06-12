@@ -21,7 +21,7 @@ type Project = {
 
 type NewChangeOrderDialogProps = {
   defaultProjectId?: string;
-  triggerText?: string;
+  triggerText?: React.ReactNode;
   triggerClassName?: string;
 };
 

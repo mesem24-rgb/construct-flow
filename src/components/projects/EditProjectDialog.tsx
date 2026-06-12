@@ -15,16 +15,17 @@ import {
 } from "@/components/ui/dialog";
 
 type EditProjectDialogProps = {
+  triggerText?: React.ReactNode;
+  triggerClassName?: string;
+
   project: {
     id: string;
     name: string;
     status: string;
     budget: number;
-    original_budget?: number;
-    revised_budget?: number;
+    original_budget: number;
+    revised_budget: number;
     completion: number;
-    triggerText?: string;
-    triggerClassName?: string;
   };
 };
 

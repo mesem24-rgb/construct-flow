@@ -27,7 +27,7 @@ type Contact = {
 
 type NewRfiDialogProps = {
   defaultProjectId?: string;
-  triggerText?: string;
+  triggerText?: React.ReactNode;
   triggerClassName?: string;
 };
 

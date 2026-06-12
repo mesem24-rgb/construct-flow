@@ -206,11 +206,11 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
     healthScore >= 85 ? "Healthy" : healthScore >= 65 ? "Watch" : "At Risk";
 
   const healthColor =
-    healthScore >= 85
-      ? "text-emerald-600"
-      : healthScore >= 65
-        ? "text-yellow-600"
-        : "text-red-600";
+    healthScore >= 80
+      ? "text-green-500"
+      : healthScore >= 60
+        ? "text-yellow-500"
+        : "text-red-500";
 
   // ===== UI =====
   return (
@@ -218,22 +218,49 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       <PageHeader
         title={typedProject.name}
         description="Commercial construction project overview."
-        action={
-          <ProjectActionsMenu project={typedProject} /> 
-        }
+        action={<ProjectActionsMenu project={typedProject} />}
       />
 
-      {/* ===== Project status row ===== */}
-      <div className="flex items-center gap-3">
-        <StatusBadge status={typedProject.status} />
+      {/* ===== Project Overview ===== */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <StatusBadge status={typedProject.status} />
 
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Budget: ${Number(revisedBudget).toLocaleString()}
-        </p>
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+              Commercial Construction Project
+            </p>
+
+            <p className="mt-1 text-lg font-semibold">
+              Budget: ${Number(revisedBudget).toLocaleString()}
+            </p>
+          </div>
+
+          <div className="w-full lg:max-w-sm">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm text-slate-500 dark:text-slate-400">
+                Completion
+              </span>
+
+              <span className="text-sm font-medium">
+                {typedProject.completion}%
+              </span>
+            </div>
+
+            <div className="h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+              <div
+                className="h-full rounded-full bg-blue-500 transition-all"
+                style={{
+                  width: `${typedProject.completion}%`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ===== Project KPI cards ===== */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Project Health
@@ -249,7 +276,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </div>
 
         {/* ===== Completion Card ===== */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Completion
           </p>
@@ -273,7 +300,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         ].map(([title, value]) => (
           <div
             key={title}
-            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+            className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {title}
@@ -283,9 +310,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           </div>
         ))}
       </div>
+      
 
       {/* ===== Recent Activity ===== */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">Recent Activity</h2>
@@ -304,11 +332,11 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             No activity has been recorded yet.
           </p>
         ) : (
-          <div className="space-y-1">
+          <div className="grid gap-2 lg:grid-cols-2">
             {typedActivities.map((activity) => (
               <div
                 key={activity.id}
-                className="flex gap-4 rounded-xl p-3 transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                className="flex gap-3 rounded-xl border border-slate-200 p-3 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60"
               >
                 <div className="mt-2 h-2.5 w-2.5 rounded-full bg-blue-500" />
 
@@ -330,7 +358,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       </div>
 
       {/* ===== Project Financials ===== */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 className="mb-4 text-xl font-semibold">Project Financials</h2>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -355,12 +383,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       </div>
 
       {/* ===== Project workflow summary cards ===== */}
-      <div className="grid gap-6 xl:grid-cols-4">
-
-
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {/* ===== Latest RFIs ===== */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="mb-4 text-xl font-semibold">Latest RFIs</h2>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="mb-3 text-lg font-semibold">Latest RFIs</h2>
 
           {typedRfis.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -370,10 +396,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div className="space-y-3">
               {typedRfis.map((rfi) => (
                 <Link
-  key={rfi.id}
-  href={`/rfis?project=${typedProject.id}`}
-  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
->
+                  key={rfi.id}
+                  href={`/rfis?project=${typedProject.id}`}
+                  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+                >
                   <h3 className="font-medium">{rfi.title}</h3>
 
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -387,8 +413,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </div>
 
         {/* ===== Latest Submittals ===== */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="mb-4 text-xl font-semibold">Latest Submittals</h2>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-smdark:border-slate-800 dark:bg-slate-900">
+          <h2 className="mb-3 text-lg font-semibold">Latest Submittals</h2>
 
           {typedSubmittals.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -398,10 +424,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div className="space-y-3">
               {typedSubmittals.map((submittal) => (
                 <Link
-  key={submittal.id}
-  href={`/submittals?project=${typedProject.id}`}
-  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
->
+                  key={submittal.id}
+                  href={`/submittals?project=${typedProject.id}`}
+                  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+                >
                   <h3 className="font-medium">{submittal.title}</h3>
 
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -418,8 +444,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </div>
 
         {/* ===== Change Orders ===== */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="mb-4 text-xl font-semibold">Change Orders</h2>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="mb-3 text-lg font-semibold">Change Orders</h2>
 
           {typedChangeOrders.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -429,10 +455,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div className="space-y-3">
               {typedChangeOrders.map((order) => (
                 <Link
-  key={order.id}
-  href={`/change-orders?project=${typedProject.id}`}
-  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
->
+                  key={order.id}
+                  href={`/change-orders?project=${typedProject.id}`}
+                  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-medium">{order.title}</h3>
@@ -453,8 +479,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         </div>
 
         {/* ===== Latest Daily Logs ===== */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="mb-4 text-xl font-semibold">Latest Daily Logs</h2>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h2 className="mb-3 text-lg font-semibold">Latest Daily Logs</h2>
 
           {typedDailyLogs.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -464,10 +490,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div className="space-y-3">
               {typedDailyLogs.map((log) => (
                 <Link
-  key={log.id}
-  href={`/daily-logs?project=${typedProject.id}`}
-  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
->
+                  key={log.id}
+                  href={`/daily-logs?project=${typedProject.id}`}
+                  className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+                >
                   <p className="font-medium">
                     {new Date(log.created_at).toLocaleDateString()}
                   </p>
@@ -485,7 +511,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           )}
         </div>
       </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 className="mb-4 text-xl font-semibold">Project Tasks</h2>
 
         {typedTasks.length === 0 ? (
@@ -524,7 +550,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       </div>
 
       {/* ===== Project Documents ===== */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">Project Documents</h2>

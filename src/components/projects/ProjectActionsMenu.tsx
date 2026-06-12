@@ -64,7 +64,7 @@ export default function ProjectActionsMenu({
       {/* ===== Trigger ===== */}
       <button
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
+        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium bg-slate-800 text-slate-200 transition hover:bg-slate-600"
         aria-haspopup="menu"
         aria-expanded={open}
       >

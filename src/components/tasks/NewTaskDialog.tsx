@@ -26,7 +26,7 @@ type Contact = {
 
 type NewTaskDialogProps = {
   defaultProjectId?: string;
-  triggerText?: string;
+  triggerText?: React.ReactNode;
   triggerClassName?: string;
 };
 
