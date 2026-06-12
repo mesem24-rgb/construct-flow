@@ -26,10 +26,14 @@ type Contact = {
 
 type NewTaskDialogProps = {
   defaultProjectId?: string;
+  triggerText?: string;
+  triggerClassName?: string;
 };
 
 export default function NewTaskDialog({
   defaultProjectId,
+  triggerText = "New Task",
+  triggerClassName = "rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900",
 }: NewTaskDialogProps) {
   const router = useRouter();
 
@@ -142,9 +146,9 @@ export default function NewTaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900">
-        New Task
-      </DialogTrigger>
+      <DialogTrigger className={triggerClassName}>
+  {triggerText}
+</DialogTrigger>
 
       <DialogContent>
         <DialogHeader>

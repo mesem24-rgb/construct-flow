@@ -21,10 +21,14 @@ type Project = {
 
 type NewChangeOrderDialogProps = {
   defaultProjectId?: string;
+  triggerText?: string;
+  triggerClassName?: string;
 };
 
 export default function NewChangeOrderDialog({
   defaultProjectId,
+  triggerText = "New Change Order",
+  triggerClassName = "rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900",
 }: NewChangeOrderDialogProps) {
   const router = useRouter();
 
@@ -97,8 +101,8 @@ export default function NewChangeOrderDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900">
-        New Change Order
+      <DialogTrigger className={triggerClassName}>
+        {triggerText}
       </DialogTrigger>
 
       <DialogContent>

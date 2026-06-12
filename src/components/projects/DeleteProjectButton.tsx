@@ -5,7 +5,17 @@ import { useRouter } from "next/navigation";
 import { logActivity } from "@/lib/activity";
 import { supabase } from "@/lib/supabase";
 
-export default function DeleteProjectButton({ id }: { id: string }) {
+type DeleteProjectButtonProps = {
+  id: string;
+  triggerText?: string;
+  className?: string;
+};
+
+export default function DeleteProjectButton({
+  id,
+  triggerText = "Delete Project",
+  className,
+}: DeleteProjectButtonProps) {
   const router = useRouter();
 
   async function handleDelete() {
@@ -34,10 +44,10 @@ export default function DeleteProjectButton({ id }: { id: string }) {
   return (
     <button
       onClick={handleDelete}
-      className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+      className={className ?? "inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"}
     >
       <Trash2 size={16} />
-      Delete Project
+      {triggerText}
     </button>
   );
 }

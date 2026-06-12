@@ -23,11 +23,15 @@ type EditProjectDialogProps = {
     original_budget?: number;
     revised_budget?: number;
     completion: number;
+    triggerText?: string;
+    triggerClassName?: string;
   };
 };
 
 export default function EditProjectDialog({
   project,
+  triggerText = "Edit Project",
+  triggerClassName = "rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900",
 }: EditProjectDialogProps) {
   const router = useRouter();
 
@@ -81,8 +85,8 @@ export default function EditProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900">
-        Edit Project
+      <DialogTrigger className={triggerClassName}>
+        {triggerText}
       </DialogTrigger>
 
       <DialogContent>

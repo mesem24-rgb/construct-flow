@@ -27,10 +27,16 @@ type Contact = {
 
 type NewRfiDialogProps = {
   defaultProjectId?: string;
+  triggerText?: string;
+  triggerClassName?: string;
 };
 
 // ===== Component =====
-export default function NewRfiDialog({ defaultProjectId }: NewRfiDialogProps) {
+export default function NewRfiDialog({
+  defaultProjectId,
+  triggerText = "New RFI",
+  triggerClassName = "rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900",
+}: NewRfiDialogProps) {
   const router = useRouter();
 
   // ===== State =====
@@ -151,9 +157,7 @@ export default function NewRfiDialog({ defaultProjectId }: NewRfiDialogProps) {
   // ===== UI =====
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900">
-        New RFI
-      </DialogTrigger>
+      <DialogTrigger className={triggerClassName}>{triggerText}</DialogTrigger>
 
       <DialogContent>
         <DialogHeader>

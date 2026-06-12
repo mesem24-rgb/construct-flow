@@ -1,8 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { MoreHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  ClipboardList,
+  FileQuestion,
+  MoreHorizontal,
+  Pencil,
+  Receipt,
+  Trash2,
+  Users,
+  ClipboardPenLine,
+} from "lucide-react";
 
 import NewTaskDialog from "@/components/tasks/NewTaskDialog";
 import NewRfiDialog from "@/components/rfis/NewRfiDialog";
@@ -24,58 +33,126 @@ type ProjectActionsMenuProps = {
   };
 };
 
+// ===== Shared menu item style =====
+const menuItemClass =
+  "flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition hover:bg-white/5";
+
 // ===== Component =====
 export default function ProjectActionsMenu({
   project,
 }: ProjectActionsMenuProps) {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // ===== Close menu when clicking outside =====
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
-    <div className="relative">
+    <div ref={menuRef} className="relative">
+      {/* ===== Trigger ===== */}
       <button
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900"
+        className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
+        aria-haspopup="menu"
+        aria-expanded={open}
       >
         <MoreHorizontal size={18} />
-        Project Actions
+        Actions
       </button>
 
+      {/* ===== Dropdown ===== */}
       {open && (
-  <div className="absolute right-0 top-14 z-50 w-56 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-2xl">
-    <button className="block w-full px-4 py-3 text-left text-sm hover:bg-slate-800">
-      New Task
-    </button>
+        <div className="absolute right-0 top-11 z-50 w-56 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 p-1.5 text-white shadow-2xl">
+          {/* ===== Creation Actions ===== */}
+          <NewTaskDialog
+            defaultProjectId={project.id}
+            triggerText={
+              <>
+                <ClipboardList size={14} />
+                <span>New Task</span>
+              </>
+            }
+            triggerClassName={menuItemClass}
+          />
 
-    <button className="block w-full px-4 py-3 text-left text-sm hover:bg-slate-800">
-      New RFI
-    </button>
+          <NewRfiDialog
+            defaultProjectId={project.id}
+            triggerText={
+              <>
+                <FileQuestion size={14} />
+                <span>New RFI</span>
+              </>
+            }
+            triggerClassName={menuItemClass}
+          />
 
-    <button className="block w-full px-4 py-3 text-left text-sm hover:bg-slate-800">
-      New Change Order
-    </button>
+          <NewChangeOrderDialog
+            defaultProjectId={project.id}
+            triggerText={
+              <>
+                <Receipt size={14} />
+                <span>New Change Order</span>
+              </>
+            }
+            triggerClassName={menuItemClass}
+          />
 
-    <button className="block w-full px-4 py-3 text-left text-sm hover:bg-slate-800">
-      New Daily Log
-    </button>
+          <NewDailyLogDialog
+            defaultProjectId={project.id}
+            triggerText={
+              <>
+                <ClipboardPenLine size={14} />
+                <span>New Daily Log</span>
+              </>
+            }
+            triggerClassName={menuItemClass}
+          />
 
-    <div className="border-t border-slate-800" />
+          <div className="my-1 border-t border-slate-800" />
 
-    <Link
-      href={`/projects/${project.id}/team`}
-      className="block px-4 py-3 text-sm hover:bg-slate-800"
-    >
-      Project Team
-    </Link>
+          {/* ===== Project Navigation ===== */}
+          <Link
+            href={`/projects/${project.id}/team`}
+            onClick={() => setOpen(false)}
+            className={menuItemClass}
+          >
+            <Users size={14} />
+            <span>Project Team</span>
+          </Link>
 
-    <button className="block w-full px-4 py-3 text-left text-sm hover:bg-slate-800">
-      Edit Project
-    </button>
+          <div className="my-1 border-t border-slate-800" />
 
-    <button className="block w-full px-4 py-3 text-left text-sm text-red-500 hover:bg-slate-800">
-      Delete Project
-    </button>
-  </div>
-)}
+          {/* ===== Management Actions ===== */}
+          <EditProjectDialog
+            project={project}
+            triggerText={
+              <>
+                <Pencil size={14} />
+                <span>Edit Project</span>
+              </>
+            }
+            triggerClassName={menuItemClass}
+          />
+
+          <DeleteProjectButton
+            id={project.id}
+            triggerText="Delete Project"
+            className={`${menuItemClass} text-red-400 hover:bg-red-950/40`}
+          />
+        </div>
+      )}
     </div>
   );
 }

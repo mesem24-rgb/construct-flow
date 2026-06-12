@@ -21,10 +21,14 @@ type Project = {
 
 type NewDailyLogDialogProps = {
   defaultProjectId?: string;
+  triggerText?: string;
+  triggerClassName?: string;
 };
 
 export default function NewDailyLogDialog({
   defaultProjectId,
+  triggerText = "New Daily Log",
+  triggerClassName = "rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900",
 }: NewDailyLogDialogProps) {
   const router = useRouter();
 
@@ -117,8 +121,8 @@ export default function NewDailyLogDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900">
-        New Log
+      <DialogTrigger className={triggerClassName}>
+        {triggerText}
       </DialogTrigger>
 
       <DialogContent>
