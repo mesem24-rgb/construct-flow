@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   ClipboardList,
   FileQuestion,
@@ -42,25 +42,9 @@ export default function ProjectActionsMenu({
   project,
 }: ProjectActionsMenuProps) {
   const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  // ===== Close menu when clicking outside =====
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   return (
-    <div ref={menuRef} className="relative">
+    <div className="relative">
       {/* ===== Trigger ===== */}
       <button
         onClick={() => setOpen((current) => !current)}

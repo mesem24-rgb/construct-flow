@@ -5,6 +5,10 @@ import PageHeader from "@/components/ui/PageHeader";
 import AddProjectTeamMemberDialog from "@/components/projects/AddProjectTeamMemberDialog";
 
 import { supabase } from "@/lib/supabase";
+import DeleteProjectTeamMemberButton from "@/components/projects/DeleteProjectTeamMemberButton";
+import EditProjectTeamMemberDialog from "@/components/projects/EditProjectTeamMemberDialog";
+
+
 
 export const dynamic = "force-dynamic";
 
@@ -46,15 +50,16 @@ export default async function ProjectTeamPage({
     .from("projects")
     .select("id, name")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   if (projectError || !project) {
     notFound();
   }
 
   const { data: teamMembers, error: teamError } = await supabase
-  .from("project_team_members")
-  .select(`
+    .from("project_team_members")
+    .select(
+      `
     id,
     role,
     contact:contacts (
@@ -65,9 +70,10 @@ export default async function ProjectTeamPage({
       email,
       phone
     )
-  `)
-  .eq("project_id", id)
-  .order("created_at", { ascending: false });
+  `,
+    )
+    .eq("project_id", id)
+    .order("created_at", { ascending: false });
 
   if (teamError) {
     throw new Error(teamError.message);
@@ -119,6 +125,17 @@ export default async function ProjectTeamPage({
                   <p>{contact?.title || "No title listed"}</p>
                   <p>{contact?.email || "No email listed"}</p>
                   <p>{contact?.phone || "No phone listed"}</p>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <EditProjectTeamMemberDialog
+                    id={member.id}
+                    name={contact?.name ?? "Unknown Contact"}
+                    currentRole={member.role}
+                  />
+                  <DeleteProjectTeamMemberButton
+                    id={member.id}
+                    name={contact?.name ?? "team member"}
+                  />
                 </div>
               </div>
             );

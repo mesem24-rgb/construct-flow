@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+} from "lucide-react";
 
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
-
-import { supabase } from "@/lib/supabase";
-
+import ProjectActionsMenu from "@/components/projects/ProjectActionsMenu";
 import UploadDocumentDialog from "@/components/documents/UploadDocumentDialog";
 import DocumentList from "@/components/documents/DocumentList";
-import ProjectActionsMenu from "@/components/projects/ProjectActionsMenu";
+
+import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +41,9 @@ type Document = {
   name: string;
   file_url: string;
   uploaded_at: string;
+  category: string | null;
+  file_size: number | null;
+  file_type: string | null;
 };
 
 type Rfi = {
@@ -83,22 +90,45 @@ interface ProjectPageProps {
   }>;
 }
 
+// ===== Helpers =====
+function formatFileSize(size: number | null) {
+  if (!size) return "Unknown size";
+
+  if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getDocumentIcon(type: string | null) {
+  if (!type) return <FileText size={18} />;
+
+  if (type.includes("image")) {
+    return <FileImage size={18} />;
+  }
+
+  if (type.includes("sheet") || type.includes("excel")) {
+    return <FileSpreadsheet size={18} />;
+  }
+
+  return <FileText size={18} />;
+}
+
 // ===== Page =====
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { id } = await params;
 
-  // ===== Load project =====
   const { data: project, error: projectError } = await supabase
     .from("projects")
     .select("*")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   if (projectError || !project) {
     notFound();
   }
 
-  // ===== Load related project data =====
   const { data: tasks, error: tasksError } = await supabase
     .from("tasks")
     .select("*")
@@ -109,14 +139,25 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
     throw new Error(tasksError.message);
   }
 
-  const { data: documents, error: documentsError } = await supabase
+  const { data: latestDocuments, error: documentsError } = await supabase
     .from("documents")
-    .select("*")
+    .select("id, name, file_url, uploaded_at, category, file_size, file_type")
     .eq("project_id", id)
-    .order("uploaded_at", { ascending: false });
+    .order("uploaded_at", { ascending: false })
+    .limit(5);
 
   if (documentsError) {
     throw new Error(documentsError.message);
+  }
+
+  const { data: allDocuments, error: allDocumentsError } = await supabase
+    .from("documents")
+    .select("id, name, file_url, uploaded_at, category, file_size, file_type")
+    .eq("project_id", id)
+    .order("uploaded_at", { ascending: false });
+
+  if (allDocumentsError) {
+    throw new Error(allDocumentsError.message);
   }
 
   const { data: rfis } = await supabase
@@ -153,16 +194,16 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
     .order("created_at", { ascending: false })
     .limit(8);
 
-  // ===== Typed data =====
   const typedProject = project as Project;
   const typedTasks = (tasks ?? []) as Task[];
-  const typedDocuments = (documents ?? []) as Document[];
+  const typedLatestDocuments = (latestDocuments ?? []) as Document[];
+  const typedAllDocuments = (allDocuments ?? []) as Document[];
   const typedRfis = (rfis ?? []) as Rfi[];
   const typedSubmittals = (submittals ?? []) as Submittal[];
   const typedChangeOrders = (changeOrders ?? []) as ChangeOrder[];
   const typedDailyLogs = (dailyLogs ?? []) as DailyLog[];
   const typedActivities = (activities ?? []) as ActivityLog[];
-  // ===== Financial calculations =====
+
   const approvedChangeOrders = typedChangeOrders
     .filter((order) => order.status === "Approved")
     .reduce((total, order) => total + Number(order.amount ?? 0), 0);
@@ -177,11 +218,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
   const revisedBudget = originalBudget + approvedChangeOrders;
 
-  // ===== Project health calculations =====
-  const openTasks = typedTasks.filter(
-    (task) => task.status !== "Closed",
-  ).length;
-
+  const openTasks = typedTasks.filter((task) => task.status !== "Closed").length;
   const openRfis = typedRfis.filter((rfi) => rfi.status !== "Closed").length;
 
   const pendingSubmittals = typedSubmittals.filter(
@@ -194,25 +231,22 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   ).length;
 
   let healthScore = 100;
-
-  healthScore -= openTasks * 3;
-  healthScore -= openRfis * 5;
-  healthScore -= pendingSubmittals * 4;
-  healthScore -= pendingChangeOrderCount * 10;
-
+  healthScore -= openTasks * 1;
+  healthScore -= openRfis * 2;
+  healthScore -= pendingSubmittals * 2;
+  healthScore -= pendingChangeOrderCount * 3;
   healthScore = Math.max(0, healthScore);
 
   const healthLabel =
     healthScore >= 85 ? "Healthy" : healthScore >= 65 ? "Watch" : "At Risk";
 
   const healthColor =
-    healthScore >= 80
-      ? "text-green-500"
-      : healthScore >= 60
-        ? "text-yellow-500"
-        : "text-red-500";
+    healthScore >= 85
+      ? "text-emerald-600"
+      : healthScore >= 65
+        ? "text-yellow-600"
+        : "text-red-600";
 
-  // ===== UI =====
   return (
     <div className="space-y-6">
       <PageHeader
@@ -222,7 +256,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
       />
 
       {/* ===== Project Overview ===== */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <StatusBadge status={typedProject.status} />
@@ -250,18 +284,16 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div className="h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
               <div
                 className="h-full rounded-full bg-blue-500 transition-all"
-                style={{
-                  width: `${typedProject.completion}%`,
-                }}
+                style={{ width: `${typedProject.completion}%` }}
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ===== Project KPI cards ===== */}
+      {/* ===== KPI Cards ===== */}
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Project Health
           </p>
@@ -275,32 +307,15 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           </p>
         </div>
 
-        {/* ===== Completion Card ===== */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Completion
-          </p>
-
-          <h3 className="mt-2 text-3xl font-bold">
-            {typedProject.completion}%
-          </h3>
-
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-            <div
-              className="h-full rounded-full bg-blue-500"
-              style={{ width: `${typedProject.completion}%` }}
-            />
-          </div>
-        </div>
-
         {[
+          ["Completion", `${typedProject.completion}%`],
           ["Open Tasks", openTasks],
           ["Open RFIs", openRfis],
           ["Pending CO", `$${pendingChangeOrders.toLocaleString()}`],
         ].map(([title, value]) => (
           <div
             key={title}
-            className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6"
           >
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {title}
@@ -310,10 +325,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           </div>
         ))}
       </div>
-      
 
       {/* ===== Recent Activity ===== */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">Recent Activity</h2>
@@ -357,35 +371,71 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         )}
       </div>
 
-      {/* ===== Project Financials ===== */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <h2 className="mb-4 text-xl font-semibold">Project Financials</h2>
+      {/* ===== Latest Documents ===== */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">Latest Documents</h2>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            ["Original Budget", `$${originalBudget.toLocaleString()}`],
-            ["Approved COs", `$${approvedChangeOrders.toLocaleString()}`],
-            ["Pending COs", `$${pendingChangeOrders.toLocaleString()}`],
-            ["Revised Budget", `$${revisedBudget.toLocaleString()}`],
-          ].map(([title, value]) => (
-            <div
-              key={title}
-              className="rounded-xl border border-slate-200 p-4 dark:border-slate-800"
-            >
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {title}
-              </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Recently uploaded project files
+            </p>
+          </div>
 
-              <p className="mt-2 text-2xl font-bold">{value}</p>
-            </div>
-          ))}
+          <UploadDocumentDialog projectId={typedProject.id} />
         </div>
+
+        {typedLatestDocuments.length === 0 ? (
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            No documents have been uploaded yet.
+          </p>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {typedLatestDocuments.map((document) => (
+              <a
+                key={document.id}
+                href={document.file_url}
+                target="_blank"
+                rel="noreferrer"
+                className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-500 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 text-slate-500">
+                    {getDocumentIcon(document.file_type)}
+                  </div>
+
+                  <div className="flex-1">
+                    <h3 className="line-clamp-1 font-medium">
+                      {document.name}
+                    </h3>
+
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                      {document.category || "Other"}
+                    </p>
+                  </div>
+
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    {document.file_type?.split("/")[1]?.toUpperCase() || "FILE"}
+                  </span>
+                </div>
+
+                <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+                  {formatFileSize(document.file_size)}
+                </p>
+
+                <p className="mt-1 text-xs text-slate-400">
+                  Uploaded {new Date(document.uploaded_at).toLocaleDateString()}
+                </p>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* ===== Project workflow summary cards ===== */}
+      {/* ===== Project Workflow Summary Cards ===== */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {/* ===== Latest RFIs ===== */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        {/* RFIs */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
           <h2 className="mb-3 text-lg font-semibold">Latest RFIs</h2>
 
           {typedRfis.length === 0 ? (
@@ -412,8 +462,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           )}
         </div>
 
-        {/* ===== Latest Submittals ===== */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-smdark:border-slate-800 dark:bg-slate-900">
+        {/* Submittals */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
           <h2 className="mb-3 text-lg font-semibold">Latest Submittals</h2>
 
           {typedSubmittals.length === 0 ? (
@@ -443,8 +493,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           )}
         </div>
 
-        {/* ===== Change Orders ===== */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        {/* Change Orders */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
           <h2 className="mb-3 text-lg font-semibold">Change Orders</h2>
 
           {typedChangeOrders.length === 0 ? (
@@ -478,8 +528,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           )}
         </div>
 
-        {/* ===== Latest Daily Logs ===== */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        {/* Daily Logs */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
           <h2 className="mb-3 text-lg font-semibold">Latest Daily Logs</h2>
 
           {typedDailyLogs.length === 0 ? (
@@ -511,7 +561,34 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           )}
         </div>
       </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+
+      {/* ===== Project Financials ===== */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+        <h2 className="mb-4 text-xl font-semibold">Project Financials</h2>
+
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          {[
+            ["Original Budget", `$${originalBudget.toLocaleString()}`],
+            ["Approved COs", `$${approvedChangeOrders.toLocaleString()}`],
+            ["Pending COs", `$${pendingChangeOrders.toLocaleString()}`],
+            ["Revised Budget", `$${revisedBudget.toLocaleString()}`],
+          ].map(([title, value]) => (
+            <div
+              key={title}
+              className="rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+            >
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {title}
+              </p>
+
+              <p className="mt-2 text-2xl font-bold">{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ===== Project Tasks ===== */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
         <h2 className="mb-4 text-xl font-semibold">Project Tasks</h2>
 
         {typedTasks.length === 0 ? (
@@ -549,11 +626,11 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         )}
       </div>
 
-      {/* ===== Project Documents ===== */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      {/* ===== All Project Documents ===== */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold">Project Documents</h2>
+            <h2 className="text-xl font-semibold">All Project Documents</h2>
 
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Upload plans, permits, contracts, photos, and project files.
@@ -563,12 +640,12 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           <UploadDocumentDialog projectId={typedProject.id} />
         </div>
 
-        {typedDocuments.length === 0 ? (
+        {typedAllDocuments.length === 0 ? (
           <p className="text-sm text-slate-500 dark:text-slate-400">
             No documents have been uploaded yet.
           </p>
         ) : (
-          <DocumentList documents={typedDocuments} />
+          <DocumentList documents={typedAllDocuments} />
         )}
       </div>
     </div>

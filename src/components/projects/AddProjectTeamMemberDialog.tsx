@@ -62,7 +62,12 @@ export default function AddProjectTeamMemberDialog({
     setLoading(false);
 
     if (error) {
-      alert(error.message);
+      if (error.code === "23505") {
+        alert("This contact is already on the project team.");
+      } else {
+        alert(error.message);
+      }
+
       return;
     }
 

@@ -9,13 +9,12 @@ type Document = {
   name: string;
   file_url: string;
   uploaded_at: string;
+  category?: string | null;
+  file_size?: number | null;
+  file_type?: string | null;
 };
 
-export default function DocumentList({
-  documents,
-}: {
-  documents: Document[];
-}) {
+export default function DocumentList({ documents }: { documents: Document[] }) {
   const [search, setSearch] = useState("");
 
   const filteredDocuments = useMemo(() => {
@@ -42,22 +41,42 @@ export default function DocumentList({
           {filteredDocuments.map((doc) => (
             <div
               key={doc.id}
-              className="flex items-center justify-between rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
+              className="rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800"
             >
-              <a
-                href={doc.file_url}
-                target="_blank"
-                rel="noreferrer"
-                className="block"
-              >
-                <p className="font-medium">{doc.name}</p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <p className="font-medium">{doc.name}</p>
 
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}
-                </p>
-              </a>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    {doc.category || "Other"}
+                  </p>
 
-              <DeleteDocumentButton id={doc.id} fileUrl={doc.file_url} />
+                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <DeleteDocumentButton id={doc.id} fileUrl={doc.file_url} />
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <a
+                  href={doc.file_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-lg border px-3 py-2 text-sm font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                >
+                  View
+                </a>
+
+                <a
+                  href={doc.file_url}
+                  download
+                  className="rounded-lg border px-3 py-2 text-sm font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                >
+                  Download
+                </a>
+              </div>
             </div>
           ))}
         </div>
