@@ -1,10 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  FileImage,
-  FileSpreadsheet,
-  FileText,
-} from "lucide-react";
+import { FileImage, FileSpreadsheet, FileText } from "lucide-react";
 
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -51,6 +47,14 @@ type Rfi = {
   title: string;
   status: string;
   priority: string;
+  due_date: string | null;
+};
+
+type Milestone = {
+  id: string;
+  title: string;
+  status: string;
+  completion: number;
   due_date: string | null;
 };
 
@@ -160,6 +164,13 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
     throw new Error(allDocumentsError.message);
   }
 
+  const { data: milestones } = await supabase
+    .from("milestones")
+    .select(`id, title, status, completion, due_date`)
+    .eq("project_id", id)
+    .order("due_date", { ascending: true })
+    .limit(5);
+
   const { data: rfis } = await supabase
     .from("rfis")
     .select("id, title, status, priority, due_date")
@@ -198,6 +209,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const typedTasks = (tasks ?? []) as Task[];
   const typedLatestDocuments = (latestDocuments ?? []) as Document[];
   const typedAllDocuments = (allDocuments ?? []) as Document[];
+  const typedMilestones = (milestones ?? []) as Milestone[];
   const typedRfis = (rfis ?? []) as Rfi[];
   const typedSubmittals = (submittals ?? []) as Submittal[];
   const typedChangeOrders = (changeOrders ?? []) as ChangeOrder[];
@@ -218,7 +230,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
   const revisedBudget = originalBudget + approvedChangeOrders;
 
-  const openTasks = typedTasks.filter((task) => task.status !== "Closed").length;
+  const openTasks = typedTasks.filter(
+    (task) => task.status !== "Closed",
+  ).length;
   const openRfis = typedRfis.filter((rfi) => rfi.status !== "Closed").length;
 
   const pendingSubmittals = typedSubmittals.filter(
@@ -427,6 +441,59 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                   Uploaded {new Date(document.uploaded_at).toLocaleDateString()}
                 </p>
               </a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold">Project Milestones</h2>
+
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Upcoming project schedule milestones.
+          </p>
+        </div>
+
+        {typedMilestones.length === 0 ? (
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            No milestones have been added.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {typedMilestones.map((milestone) => (
+              <div
+                key={milestone.id}
+                className="rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-medium">{milestone.title}</h3>
+
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Due {milestone.due_date || "No date"}
+                    </p>
+                  </div>
+
+                  <StatusBadge status={milestone.status} />
+                </div>
+
+                <div className="mt-3">
+                  <div className="mb-2 flex justify-between text-sm">
+                    <span>Progress</span>
+                    <span>{milestone.completion}%</span>
+                  </div>
+
+                  <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-800">
+                    <div
+                      className="h-full rounded-full bg-blue-500"
+                      style={{
+                        width: `${milestone.completion}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}

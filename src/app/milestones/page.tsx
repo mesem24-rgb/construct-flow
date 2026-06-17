@@ -2,6 +2,9 @@ import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import NewMilestoneDialog from "@/components/milestones/NewMilestoneDialog";
 
+import EditMilestoneDialog from "@/components/milestones/EditMilestoneDialog";
+import DeleteMilestoneButton from "@/components/milestones/DeleteMilestoneButton";
+
 import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -155,9 +158,7 @@ export default async function MilestonesPage({
                     Completion
                   </span>
 
-                  <span className="font-medium">
-                    {milestone.completion}%
-                  </span>
+                  <span className="font-medium">{milestone.completion}%</span>
                 </div>
 
                 <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
@@ -166,6 +167,24 @@ export default async function MilestonesPage({
                     style={{ width: `${milestone.completion}%` }}
                   />
                 </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
+                <EditMilestoneDialog
+                  milestone={{
+                    id: milestone.id,
+                    title: milestone.title,
+                    description: milestone.description,
+                    due_date: milestone.due_date,
+                    status: milestone.status,
+                    completion: milestone.completion,
+                  }}
+                />
+
+                <DeleteMilestoneButton
+                  id={milestone.id}
+                  title={milestone.title}
+                />
               </div>
             </div>
           ))
