@@ -53,6 +53,20 @@ export default async function HomePage() {
     .select("*", { count: "exact", head: true })
     .neq("status", "Closed");
 
+  const { count: documentCount } = await supabase
+    .from("documents")
+    .select("*", {
+      count: "exact",
+      head: true,
+    });
+
+  const { count: teamMemberCount } = await supabase
+    .from("project_team_members")
+    .select("*", {
+      count: "exact",
+      head: true,
+    });
+
   const taskStatusData = [
     {
       name: "Open",
@@ -83,14 +97,17 @@ export default async function HomePage() {
       <DashboardRealtime />
 
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Project Operations Dashboard
+        </h1>
 
         <p className="text-slate-500 dark:text-slate-400">
-          Here’s an overview of your construction projects.
+          Real-time overview of projects, finances, field activity, documents,
+          and team performance.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-7">
         <StatCard
           title="Active Projects"
           value={String(projectCount ?? 0)}
@@ -110,18 +127,29 @@ export default async function HomePage() {
         />
 
         <StatCard
+          title="Documents"
+          value={String(documentCount ?? 0)}
+          icon={FolderKanban}
+        />
+
+        <StatCard
+          title="Team Members"
+          value={String(teamMemberCount ?? 0)}
+          icon={ClipboardList}
+        />
+
+        <StatCard
           title="Total Budget"
           value={`$${totalBudget.toLocaleString()}`}
           icon={DollarSign}
         />
 
         <StatCard
-          title="Open RFIs"
-          value={String(openRfiCount ?? 0)}
+          title="Pending CO Value"
+          value={`$${pendingChangeOrderValue.toLocaleString()}`}
           icon={FileWarning}
         />
       </div>
-
       <ProjectHealthOverview />
 
       <div className="grid gap-6 xl:grid-cols-2">
