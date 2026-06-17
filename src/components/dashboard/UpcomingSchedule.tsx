@@ -1,80 +1,63 @@
-import {
-  CalendarCheck2,
-  HardHat,
-  Truck,
-  ClipboardCheck,
-} from "lucide-react";
+import { CalendarCheck2 } from "lucide-react";
 
-const schedule = [
-  {
-    title: "Framing Inspection",
-    project: "Gulf Coast Retail Center",
-    date: "May 24 • 9:00 AM",
-    icon: ClipboardCheck,
-  },
-  {
-    title: "Concrete Delivery",
-    project: "Ocean Springs Warehouse",
-    date: "May 25 • 7:30 AM",
-    icon: Truck,
-  },
-  {
-    title: "Site Safety Meeting",
-    project: "Bayview Medical Office",
-    date: "May 26 • 8:00 AM",
-    icon: HardHat,
-  },
-  {
-    title: "Client Walkthrough",
-    project: "Retail Center Expansion",
-    date: "May 27 • 1:00 PM",
-    icon: CalendarCheck2,
-  },
-];
+import { supabase } from "@/lib/supabase";
 
-export default function UpcomingSchedule() {
+export default async function UpcomingSchedule() {
+  const { data: milestones } = await supabase
+    .from("milestones")
+    .select("id, title, due_date, status")
+    .neq("status", "Complete")
+    .order("due_date", { ascending: true })
+    .limit(5);
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-6">
         <h2 className="text-xl font-semibold">
-          Upcoming Schedule
+          Upcoming Milestones
         </h2>
 
-        <p className="text-sm text-slate-500">
-          Upcoming inspections, deliveries, and meetings.
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Upcoming project schedule milestones.
         </p>
       </div>
 
-      <div className="space-y-4">
-        {schedule.map((item) => {
-          const Icon = item.icon;
-
-          return (
+      {milestones?.length ? (
+        <div className="space-y-4">
+          {milestones.map((milestone) => (
             <div
-              key={item.title}
+              key={milestone.id}
               className="flex items-start gap-4 rounded-xl border border-slate-200 p-4 dark:border-slate-800"
             >
               <div className="rounded-xl bg-slate-100 p-3 dark:bg-slate-800">
-                <Icon size={18} />
+                <CalendarCheck2 size={18} />
               </div>
 
               <div className="flex-1">
                 <h3 className="font-medium">
-                  {item.title}
+                  {milestone.title}
                 </h3>
 
-                <p className="text-sm text-slate-500">
-                  {item.project}
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {milestone.status}
                 </p>
               </div>
 
               <span className="text-sm text-slate-400">
-                {item.date}
+                {milestone.due_date
+                  ? new Date(
+                      milestone.due_date,
+                    ).toLocaleDateString()
+                  : "No date"}
               </span>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          No upcoming milestones.
+        </p>
+      )}
     </div>
   );
 }
